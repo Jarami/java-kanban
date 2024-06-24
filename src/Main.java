@@ -8,13 +8,13 @@ public class Main {
 
         Epic epic1 = new Epic("epic1", "Some description of epic 1");
 
-        SubTask subtask11 = new SubTask("subtask11", "Some description of subtask 1 for epic1");
-        SubTask subtask12 = new SubTask("subtask12", "Some description of subtask 2 for epic1");
+        SubTask subtask11 = new SubTask("subtask11", "Some description of subtask 1 for epic1", epic1);
+        SubTask subtask12 = new SubTask("subtask12", "Some description of subtask 2 for epic1", epic1);
         epic1.addSubTask(subtask11);
         epic1.addSubTask(subtask12);
 
         Epic epic2 = new Epic("epic2", "Some description of epic 2");
-        SubTask subtask21 = new SubTask("subtask21", "Some description of subtask 1 for epic2");
+        SubTask subtask21 = new SubTask("subtask21", "Some description of subtask 1 for epic2", epic2);
         epic1.addSubTask(subtask21);
 
         System.out.println("task1 = " + task1);
