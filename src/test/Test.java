@@ -45,21 +45,29 @@ public class Test {
         try {
             method.invoke(this);
             passed++;
-        } catch (FailError e) {
-            handleFail(method, e);
-            failed++;
+
         } catch(Exception e) {
-            handleException(method, e);
-            errors++;
+
+            if (e.getCause() != null && e.getCause().getClass() == FailError.class){
+                handleFail(method, e);
+                failed++;
+
+            } else {
+                handleException(method, e);
+                errors++;
+
+            }
         }
     }
 
-    protected void handleFail(Method method, Error e) {
-        messages.add("Провал в методе " + method.getName() + '\n' + "  " + e.getCause().getMessage());
+    protected void handleFail(Method method, Throwable e) {
+        String message = e.getCause() == null ? e.getMessage() : e.getCause().getMessage();
+        messages.add("Провал в методе " + method.getName() + '\n' + "  " + message);
     }
 
-    protected void handleException(Method method, Exception e) {
-        messages.add("Ошибка в методе " + method.getName() + '\n' + "  " + e.getCause().getMessage());
+    protected void handleException(Method method, Throwable e) {
+        String message = e.getCause() == null ? e.getMessage() : e.getCause().getMessage();
+        messages.add("Ошибка в методе " + method.getName() + '\n' + "  " + message);
     }
 
     protected void printTestSummary() {

@@ -185,10 +185,10 @@ public class TaskTest extends Test {
         manager.removeTaskById(id1);
 
         // остальные должны сохраниться
-        assertEquals(tasks.get(0), manager.getTaskById(id0), "Первая задача должна сохраниться");
-        assertNull(manager.getTaskById(id1), "Вторая задача должна отсутствовать");
-        assertEquals(tasks.get(2), manager.getTaskById(id2), "Третья задача должна сохраниться");
-        assertEquals(2, manager.getTasks().size(), "После удаления должно быть 2 задачи");
+        Collection<Task> actualTasks = manager.getTasks();
+        assertEquals(2, actualTasks.size(), "Должно быть 2 задачи после удаления");
+        assertTrue(actualTasks.contains(tasks.get(0)), "Первая задача должна сохраниться");
+        assertTrue(actualTasks.contains(tasks.get(2)), "Третья задача должна сохраниться");
 
     }
 
@@ -216,8 +216,8 @@ public class TaskTest extends Test {
 
         // проверяем эпики - второй должен удалиться
         Collection<Epic> actualEpics = manager.getEpics();
+        assertEquals(2, actualEpics.size(), "После удаления должно быть 2 эпика");
         assertTrue(actualEpics.contains(epic0),"Первый эпик должен сохраниться");
-        assertFalse(actualEpics.contains(epic1),"Второй эпик должен удалиться");
         assertTrue(actualEpics.contains(epic2),"Третий эпик должен сохраниться");
 
         // проверяем подзадачи - подзадачи второго эпика должны удалиться
@@ -227,6 +227,35 @@ public class TaskTest extends Test {
 
         int expectedSubtaskCount = subtasks0.size() + subtasks2.size();
         assertEquals(expectedSubtaskCount, actualSubtasks.size(), "Подзадачи второго эпика должны удалиться");
+    }
+
+    // Удаление подзадачи по идентификатору:
+    // после удаления подзадача не должна возвращаться из родительского эпика
+    public void testThatManagerRemoveSubtaskById() {
+        Epic epic = createSampleEpic("epic1", 3);
+
+        TaskManager manager = new TaskManager();
+        manager.saveTask(epic);
+
+        assertEquals(3, manager.getSubtasks().size(), "До удаления должно быть 3 подзадачи");
+
+        ArrayList<Subtask> subtasks = new ArrayList<>(epic.getSubtasks());
+
+        // удаляем вторую
+        manager.removeSubtaskById(subtasks.get(1).getId());
+
+        // остальные должны сохраниться в общем списке ...
+        Collection<Subtask> actualSubtasks = manager.getSubtasks();
+        assertEquals(2, actualSubtasks.size(), "Должно быть 2 подзадачи после удаления");
+        assertTrue(actualSubtasks.contains(subtasks.get(0)), "Первая подзадача должна сохраниться");
+        assertTrue(actualSubtasks.contains(subtasks.get(2)), "Третья подзадача должна сохраниться");
+
+        // ... и у эпика
+        ArrayList<Subtask> actualEpicSubtasks = epic.getSubtasks();
+        assertEquals(2, actualEpicSubtasks.size(), "У эпика должно быть 2 подзадачи после удаления");
+        assertTrue(actualEpicSubtasks.contains(subtasks.get(0)), "Первая подзадача у эпика должна сохраниться");
+        assertTrue(actualEpicSubtasks.contains(subtasks.get(2)), "Третья подзадача у эпика должна сохраниться");
+
     }
 
     private ArrayList<Task> createSampleTasks(int taskCount) {

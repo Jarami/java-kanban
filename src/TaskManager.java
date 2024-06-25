@@ -118,19 +118,26 @@ public class TaskManager {
 
         if (epic != null) {
             for (Subtask subtask : epic.getSubtasks()) {
-                removeSubtaskById(subtask.getId());
+                subtaskRepo.remove(subtask.getId());
             }
             epicRepo.remove(id);
         }
     }
 
+    // эпики могут существовать без подзадач
     public void removeSubtasks() {
         subtaskRepo.clear();
     }
 
     public void removeSubtaskById(int id) {
-        subtaskRepo.remove(id);
-        // TODO: после удаление подзадачи надо обновить статус у родительского эпика
+        Subtask subtask = subtaskRepo.get(id);
+
+        if (subtask != null) {
+            Epic epic = subtask.getEpic();
+            epic.removeSubtask(subtask);
+            subtaskRepo.remove(id);
+            // TODO: после удаление подзадачи надо обновить статус у родительского эпика
+        }
     }
 
     private TaskStatus calculateEpicStatus(Epic epic) {
