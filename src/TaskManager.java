@@ -1,6 +1,7 @@
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.Map;
 
 public class TaskManager {
 
@@ -108,7 +109,7 @@ public class TaskManager {
     }
 
     public void removeEpics() {
-        removeSubtasks();
+        subtaskRepo.clear();
         epicRepo.clear();
     }
 
@@ -124,8 +125,13 @@ public class TaskManager {
         }
     }
 
-    // эпики могут существовать без подзадач
+    // эпики могут существовать без подзадач,
+    // но все подзадачи у эпиков должны быть удалены
     public void removeSubtasks() {
+        for (Map.Entry<Integer, Subtask> entry : subtaskRepo.entrySet()) {
+            Subtask subtask = entry.getValue();
+            subtask.getEpic().removeSubtasks();
+        }
         subtaskRepo.clear();
     }
 

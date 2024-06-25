@@ -2,6 +2,7 @@ package test;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Collection;
 
 public class Test {
 
@@ -106,6 +107,12 @@ public class Test {
 
     public void assertNull(Object o, String message) {
         if (o != null) {
+            throw new FailError(message);
+        }
+    }
+
+    public <T> void assertEmpty(Collection<T> collection, String message) {
+        if (!collection.isEmpty()) {
             throw new FailError(message);
         }
     }

@@ -258,6 +258,64 @@ public class TaskTest extends Test {
 
     }
 
+    // удаление всех обычных задач
+    public void testThatManagerRemoveAllTasks() {
+        ArrayList<Task> tasks = createSampleTasks(3);
+
+        TaskManager manager = new TaskManager();
+        manager.saveTask(tasks.get(0));
+        manager.saveTask(tasks.get(1));
+        manager.saveTask(tasks.get(2));
+
+        assertEquals(3, manager.getTasks().size(), "До удаления должно быть 3 задачи");
+
+        manager.removeTasks();
+
+        assertEquals(0, manager.getTasks().size(), "После удаления не должно быть задач");
+    }
+
+    // удаление всех обычных эпиков
+    public void testThatManagerRemoveAllEpics() {
+        Epic epic0 = createSampleEpic("epic0", 2);
+        Epic epic1 = createSampleEpic("epic1", 3);
+        Epic epic2 = createSampleEpic("epic2", 4);
+
+        TaskManager manager = new TaskManager();
+        manager.saveTask(epic0);
+        manager.saveTask(epic1);
+        manager.saveTask(epic2);
+
+        assertEquals(3, manager.getEpics().size(), "До удаления должно быть 3 эпика");
+        assertEquals(9, manager.getSubtasks().size(), "До удаления должно быть 9 подзадач");
+
+        manager.removeEpics();
+
+        assertEquals(0, manager.getEpics().size(), "После удаления не должно быть эпиков");
+        assertEquals(0, manager.getSubtasks().size(), "После удаления не должно быть подзадач");
+    }
+
+    // удаление всех подзадач
+    // эпики не должны быть удалены, потому что они могут существовать без подзадач
+    public void testThatManagerRemoveAllSubtasks() {
+        Epic epic0 = createSampleEpic("epic0", 2);
+        Epic epic1 = createSampleEpic("epic1", 3);
+
+        TaskManager manager = new TaskManager();
+        manager.saveTask(epic0);
+        manager.saveTask(epic1);
+
+        assertEquals(2, manager.getEpics().size(), "До удаления должно быть 3 эпика");
+        assertEquals(5, manager.getSubtasks().size(), "До удаления должно быть 9 подзадач");
+
+        manager.removeSubtasks();
+
+        assertEquals(2, manager.getEpics().size(), "После удаления не должно быть эпиков");
+        assertEquals(0, manager.getSubtasks().size(), "После удаления не должно быть подзадач");
+
+        assertEmpty(epic0.getSubtasks(), "После удаления у первого эпика не должно быть подзадач");
+        assertEmpty(epic1.getSubtasks(), "После удаления у второго эпика не должно быть подзадач");
+    }
+
     private ArrayList<Task> createSampleTasks(int taskCount) {
         ArrayList<Task> tasks = new ArrayList<>();
         for (int i = 0; i < taskCount; i++) {
