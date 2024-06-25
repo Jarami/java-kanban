@@ -23,7 +23,7 @@ public class TaskTest extends Test {
         manager.saveTask(epic1);
         manager.saveTask(epic2);
 
-        HashSet<Integer> ids = new HashSet<Integer>();
+        HashSet<Integer> ids = new HashSet<>();
 
         ids.add( tasks.get(0).getId() );
         ids.add( tasks.get(1).getId() );
@@ -38,11 +38,12 @@ public class TaskTest extends Test {
 
     // Возвращаются все обычные задачи
     public void testThatManagerReturnAllTasks() {
-        ArrayList<Task> tasks = createSampleTasks(2);
+        ArrayList<Task> tasks = createSampleTasks(3);
 
         TaskManager manager = new TaskManager();
         manager.saveTask(tasks.get(0));
         manager.saveTask(tasks.get(1));
+        manager.saveTask(tasks.get(2));
 
         boolean isEqual = areListEqualOrderIgnored(tasks, manager.getTasks());
         assertTrue(isEqual,"должны возвращаться все обычные задачи");
@@ -103,7 +104,6 @@ public class TaskTest extends Test {
     // Получение эпика по идентификатору
     public void testThatManagerReturnEpicById() {
 
-        ArrayList<Task> tasks = createSampleTasks(2);
         Epic epic1 = createSampleEpic("epic 1", 1);
         Epic epic2 = createSampleEpic("epic 2", 2);
 
@@ -158,10 +158,10 @@ public class TaskTest extends Test {
         epic.addSubtask(subtask1);
         epic.addSubtask(subtask2);
 
-        ArrayList<Subtask> actualSubtasts = epic.getSubtasks();
-        List<Subtask> expextedSubtasks = List.of(subtask1, subtask2);
+        ArrayList<Subtask> actualSubtasks = epic.getSubtasks();
+        List<Subtask> expectedSubtasks = List.of(subtask1, subtask2);
 
-        boolean isEqual = areListEqualOrderIgnored(expextedSubtasks, actualSubtasts);
+        boolean isEqual = areListEqualOrderIgnored(expectedSubtasks, actualSubtasks);
         assertTrue(isEqual, "Эпик должен возвращать список подзадач");
     }
 
@@ -177,7 +177,6 @@ public class TaskTest extends Test {
 
         Epic epic = new Epic(epicName, "description of epic " + epicName);
 
-        ArrayList<Subtask> subtasks = new ArrayList<>();
         for (int i = 0; i < subtaskCount; i++) {
             String subtaskName = epicName + ", subtask " + i;
             String subtaskDesc = "description of subtask " + i + " of epic " + epicName;
