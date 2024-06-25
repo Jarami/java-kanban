@@ -108,11 +108,20 @@ public class TaskManager {
     }
 
     public void removeEpics() {
+        removeSubtasks();
         epicRepo.clear();
     }
 
+    // при удалении эпика все его подзадачи тоже удаляются
     public void removeEpicById(int id) {
-        epicRepo.remove(id);
+        Epic epic = epicRepo.get(id);
+
+        if (epic != null) {
+            for (Subtask subtask : epic.getSubtasks()) {
+                removeSubtaskById(subtask.getId());
+            }
+            epicRepo.remove(id);
+        }
     }
 
     public void removeSubtasks() {
@@ -121,6 +130,7 @@ public class TaskManager {
 
     public void removeSubtaskById(int id) {
         subtaskRepo.remove(id);
+        // TODO: после удаление подзадачи надо обновить статус у родительского эпика
     }
 
     private TaskStatus calculateEpicStatus(Epic epic) {

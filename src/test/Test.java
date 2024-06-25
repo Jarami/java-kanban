@@ -84,6 +84,12 @@ public class Test {
         }
     }
 
+    public void assertFalse(boolean condition, String message) {
+        if (condition) {
+            throw new FailError(message);
+        }
+    }
+
     public void assertNotEquals(Object o1, Object o2, String message) {
         if (o1.equals(o2)) {
             throw new FailError(message);
