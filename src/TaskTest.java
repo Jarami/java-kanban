@@ -20,8 +20,8 @@ public class TaskTest extends Test {
         TaskManager manager = new TaskManager();
         manager.saveTask(tasks.get(0));
         manager.saveTask(tasks.get(1));
-        manager.saveTask(epic1);
-        manager.saveTask(epic2);
+        manager.saveEpic(epic1);
+        manager.saveEpic(epic2);
 
         HashSet<Integer> ids = new HashSet<>();
 
@@ -56,8 +56,8 @@ public class TaskTest extends Test {
         Epic epic2 = createSampleEpic("epic 2", 1);
 
         TaskManager manager = new TaskManager();
-        manager.saveTask(epic1);
-        manager.saveTask(epic2);
+        manager.saveEpic(epic1);
+        manager.saveEpic(epic2);
 
         boolean isEqual = areListEqualOrderIgnored(List.of(epic1, epic2), manager.getEpics());
         assertTrue(isEqual, "должны возвращаться все эпики");
@@ -70,8 +70,8 @@ public class TaskTest extends Test {
         Epic epic2 = createSampleEpic("epic 2", 1);
 
         TaskManager manager = new TaskManager();
-        manager.saveTask(epic1);
-        manager.saveTask(epic2);
+        manager.saveEpic(epic1);
+        manager.saveEpic(epic2);
 
         ArrayList<Subtask> subtasks1 = epic1.getSubtasks();
         ArrayList<Subtask> subtasks2 = epic2.getSubtasks();
@@ -108,8 +108,8 @@ public class TaskTest extends Test {
         Epic epic2 = createSampleEpic("epic 2", 2);
 
         TaskManager manager = new TaskManager();
-        manager.saveTask(epic1);
-        manager.saveTask(epic2);
+        manager.saveEpic(epic1);
+        manager.saveEpic(epic2);
 
         int id1 = epic1.getId();
         assertEquals(epic1, manager.getEpicById(id1), "должен вернуться первый эпик по id = " + id1);
@@ -128,8 +128,8 @@ public class TaskTest extends Test {
         Epic epic2 = createSampleEpic("epic 2", 1);
 
         TaskManager manager = new TaskManager();
-        manager.saveTask(epic1);
-        manager.saveTask(epic2);
+        manager.saveEpic(epic1);
+        manager.saveEpic(epic2);
 
         ArrayList<Subtask> subtasks1 = epic1.getSubtasks();
         ArrayList<Subtask> subtasks2 = epic2.getSubtasks();
@@ -166,6 +166,21 @@ public class TaskTest extends Test {
         assertTrue(isEqual, "Эпик должен возвращать список подзадач");
     }
 
+    // Менеджер возвращает подзадачи эпика
+    public void testThatManagerReturnsEpicSubtasks() {
+        Epic epic0 = createSampleEpic("epic0", 2);
+        Epic epic1 = createSampleEpic("epic1", 3);
+
+        TaskManager manager = new TaskManager();
+        manager.saveEpic(epic0);
+        manager.saveEpic(epic1);
+
+        ArrayList<Subtask> actualSubtasks = manager.getSubtasksByEpic(epic0);
+        ArrayList<Subtask> expectedSubtasks = epic0.getSubtasks();
+        boolean areSubtasksEqual = areListEqualOrderIgnored(expectedSubtasks, actualSubtasks);
+        assertTrue(areSubtasksEqual, "менеджер должен возвращать подзадачи эпика");
+    }
+
     // Удаление обычной задачи по идентификатору
     public void testThatManagerRemoveTaskById() {
         ArrayList<Task> tasks = createSampleTasks(3);
@@ -177,9 +192,7 @@ public class TaskTest extends Test {
 
         assertEquals(3, manager.getTasks().size(), "До удаления должно быть 3 задачи");
 
-        int id0 = tasks.get(0).getId();
         int id1 = tasks.get(1).getId();
-        int id2 = tasks.get(2).getId();
 
         // удаляем вторую
         manager.removeTaskById(id1);
@@ -200,9 +213,9 @@ public class TaskTest extends Test {
         Epic epic2 = createSampleEpic("epic2", 4);
 
         TaskManager manager = new TaskManager();
-        manager.saveTask(epic0);
-        manager.saveTask(epic1);
-        manager.saveTask(epic2);
+        manager.saveEpic(epic0);
+        manager.saveEpic(epic1);
+        manager.saveEpic(epic2);
 
         assertEquals(3, manager.getEpics().size(), "До удаления должно быть 3 эпика");
         assertEquals(9, manager.getSubtasks().size(), "До удаления должно быть 9 подзадач");
@@ -235,7 +248,7 @@ public class TaskTest extends Test {
         Epic epic = createSampleEpic("epic1", 3);
 
         TaskManager manager = new TaskManager();
-        manager.saveTask(epic);
+        manager.saveEpic(epic);
 
         assertEquals(3, manager.getSubtasks().size(), "До удаления должно быть 3 подзадачи");
 
@@ -281,9 +294,9 @@ public class TaskTest extends Test {
         Epic epic2 = createSampleEpic("epic2", 4);
 
         TaskManager manager = new TaskManager();
-        manager.saveTask(epic0);
-        manager.saveTask(epic1);
-        manager.saveTask(epic2);
+        manager.saveEpic(epic0);
+        manager.saveEpic(epic1);
+        manager.saveEpic(epic2);
 
         assertEquals(3, manager.getEpics().size(), "До удаления должно быть 3 эпика");
         assertEquals(9, manager.getSubtasks().size(), "До удаления должно быть 9 подзадач");
@@ -295,14 +308,15 @@ public class TaskTest extends Test {
     }
 
     // удаление всех подзадач
-    // эпики не должны быть удалены, потому что они могут существовать без подзадач
+    // эпики не должны быть удалены, потому что они могут существовать без подзадач,
+    // но все подзадачи у эпиков должны быть удалены
     public void testThatManagerRemoveAllSubtasks() {
         Epic epic0 = createSampleEpic("epic0", 2);
         Epic epic1 = createSampleEpic("epic1", 3);
 
         TaskManager manager = new TaskManager();
-        manager.saveTask(epic0);
-        manager.saveTask(epic1);
+        manager.saveEpic(epic0);
+        manager.saveEpic(epic1);
 
         assertEquals(2, manager.getEpics().size(), "До удаления должно быть 3 эпика");
         assertEquals(5, manager.getSubtasks().size(), "До удаления должно быть 9 подзадач");
@@ -314,6 +328,25 @@ public class TaskTest extends Test {
 
         assertEmpty(epic0.getSubtasks(), "После удаления у первого эпика не должно быть подзадач");
         assertEmpty(epic1.getSubtasks(), "После удаления у второго эпика не должно быть подзадач");
+    }
+
+    // обновление обычной задачи
+    public void testThatManagerUpdateTask() {
+        Task task = new Task("some new task", "some description of new task");
+
+        TaskManager manager = new TaskManager();
+        manager.saveTask(task);
+        int taskId = task.getId();
+
+        assertEquals(task, manager.getTaskById(taskId), "до обновления задача должна быть старой");
+
+        Task newTask = new Task("some new task", "some description of new task");
+        newTask.setId(taskId);
+
+        manager.updateTask(newTask);
+
+        assertTrue(task != manager.getTaskById(taskId), "после обновления задача не должна быть старой");
+        assertTrue(newTask == manager.getTaskById(taskId), "после обновления задача должна быть новой");
     }
 
     private ArrayList<Task> createSampleTasks(int taskCount) {

@@ -25,7 +25,7 @@ public class TaskManager {
         System.out.println("task created: " + task);
     }
 
-    public void saveTask(Epic epic) {
+    public void saveEpic(Epic epic) {
 
         if (epicRepo.get(epic.getId()) != null) {
             System.out.println("Такой эпик уже существует!");
@@ -37,11 +37,11 @@ public class TaskManager {
         System.out.println("epic created: " + epic);
 
         for (Subtask subtask : epic.getSubtasks()) {
-            saveTask(subtask);
+            saveSubtask(subtask);
         }
     }
 
-    public void saveTask(Subtask subtask) {
+    public void saveSubtask(Subtask subtask) {
 
         if (subtaskRepo.get(subtask.getId()) != null) {
             System.out.println("Такая подзадача уже существует!");
@@ -89,14 +89,13 @@ public class TaskManager {
 
     public void updateEpic(Epic epic) {
         epicRepo.put(epic.getId(), epic);
-        epic.setStatus(calculateEpicStatus(epic));
+        epic.update();
     }
 
+    // при обновлении подзадачи нужно обновить родительский эпик
     public void updateSubtask(Subtask subtask) {
         subtaskRepo.put(subtask.getId(), subtask);
-
-        Epic epic = subtask.getEpic();
-        epic.setStatus(calculateEpicStatus(epic));
+        subtask.getEpic().update();
     }
 
     // delete
@@ -130,58 +129,22 @@ public class TaskManager {
     public void removeSubtasks() {
         for (Map.Entry<Integer, Subtask> entry : subtaskRepo.entrySet()) {
             Subtask subtask = entry.getValue();
-            subtask.getEpic().removeSubtasks();
+            Epic epic = subtask.getEpic();
+            epic.removeSubtasks();
+            epic.update();
         }
         subtaskRepo.clear();
     }
 
+    // при удалении подзадачи нужно обновить родительский эпик
     public void removeSubtaskById(int id) {
         Subtask subtask = subtaskRepo.get(id);
 
         if (subtask != null) {
             Epic epic = subtask.getEpic();
             epic.removeSubtask(subtask);
+            epic.update();
             subtaskRepo.remove(id);
-            // TODO: после удаление подзадачи надо обновить статус у родительского эпика
         }
     }
-
-    private TaskStatus calculateEpicStatus(Epic epic) {
-
-        ArrayList<Subtask> subtasks = epic.getSubtasks();
-
-        if (subtasks.isEmpty() || hasStatusNew(subtasks)) {
-            return TaskStatus.NEW;
-        }
-
-        // на пустоту уже проверили
-        if (hasStatusDone(subtasks)) {
-            return TaskStatus.DONE;
-        }
-
-        return TaskStatus.IN_PROGRESS;
-    }
-
-    private boolean hasStatusNew(ArrayList<Subtask> subtasks) {
-        return hasStatus(subtasks, TaskStatus.NEW);
-    }
-
-    private boolean hasStatusDone(ArrayList<Subtask> subtasks) {
-        return hasStatus(subtasks, TaskStatus.DONE);
-    }
-
-    private boolean hasStatus(ArrayList<Subtask> subtasks, TaskStatus status) {
-        if (subtasks.isEmpty()) {
-            return false;
-        }
-
-        for (Subtask subtask : subtasks) {
-            if (subtask.getStatus() != status) {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
 }

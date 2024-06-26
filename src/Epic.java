@@ -24,4 +24,37 @@ public class Epic extends Task {
     public void removeSubtasks() {
         subtasks.clear();
     }
+
+    public void update() {
+        // обновляем статус
+        if (subtasks.isEmpty() || areAllSubtasksNew()) {
+            this.status = TaskStatus.NEW;
+        } else if (areAllSubtasksDone()) {
+            this.status = TaskStatus.DONE;
+        } else {
+            this.status = TaskStatus.IN_PROGRESS;
+        }
+    }
+
+    private boolean areAllSubtasksNew() {
+        return areAllSubtasksHaveStatus(TaskStatus.NEW);
+    }
+
+    private boolean areAllSubtasksDone() {
+        return areAllSubtasksHaveStatus(TaskStatus.DONE);
+    }
+
+    private boolean areAllSubtasksHaveStatus(TaskStatus taskStatus) {
+        if (subtasks.isEmpty()) {
+            return false;
+        }
+
+        for (Subtask subtask : subtasks) {
+            if (subtask.getStatus() != taskStatus) {
+                return false;
+            }
+        }
+
+        return true;
+    }
 }
