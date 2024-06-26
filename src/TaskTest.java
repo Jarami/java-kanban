@@ -332,13 +332,13 @@ public class TaskTest extends Test {
 
     // обновление обычной задачи
     public void testThatManagerUpdateTask() {
-        Task task = new Task("some new task", "some description of new task");
+        Task task = new Task("some task", "some description of task");
 
         TaskManager manager = new TaskManager();
         manager.saveTask(task);
         int taskId = task.getId();
 
-        assertEquals(task, manager.getTaskById(taskId), "до обновления задача должна быть старой");
+        assertTrue(task == manager.getTaskById(taskId), "до обновления задача должна быть старой");
 
         Task newTask = new Task("some new task", "some description of new task");
         newTask.setId(taskId);
@@ -347,6 +347,52 @@ public class TaskTest extends Test {
 
         assertTrue(task != manager.getTaskById(taskId), "после обновления задача не должна быть старой");
         assertTrue(newTask == manager.getTaskById(taskId), "после обновления задача должна быть новой");
+    }
+
+    // обновление эпика
+    public void testThatManagerUpdateEpic() {
+        Epic epic = new Epic("эпик", "описание эпика");
+
+        TaskManager manager = new TaskManager();
+        manager.saveEpic(epic);
+        int epicId = epic.getId();
+
+        assertTrue(epic == manager.getEpicById(epicId), "до обновления эпик должен быть старым");
+
+        Epic newEpic = new Epic("новый эпик", "описание нового эпика");
+        newEpic.setId(epicId);
+
+        manager.updateEpic(newEpic);
+
+        assertTrue(epic != manager.getEpicById(epicId), "после обновления эпик не должен быть старым");
+        assertTrue(newEpic == manager.getEpicById(epicId), "после обновления эпик должен быть новым");
+    }
+
+    // обновление эпика
+    public void testThatManagerUpdateSubtask() {
+        Epic epic = new Epic("эпик", "описание эпика");
+
+        Subtask subtask1 = new Subtask("подзадача №1", "описание подзадачи №1", epic);
+        Subtask subtask2 = new Subtask("подзадача №2", "описание подзадачи №2", epic);
+        Subtask subtask3 = new Subtask("подзадача №3", "описание подзадачи №3", epic);
+        epic.addSubtask(subtask1);
+        epic.addSubtask(subtask2);
+        epic.addSubtask(subtask3);
+
+        TaskManager manager = new TaskManager();
+        manager.saveEpic(epic);
+
+        int subtaskId = subtask2.getId();
+
+        assertTrue(subtask2 == manager.getSubtaskById(subtaskId), "до обновления подзадача должна быть старой");
+
+        Subtask newSubtask = new Subtask("новая подзадача", "описание новой подзадачи", epic);
+        newSubtask.setId(subtaskId);
+
+        manager.updateSubtask(newSubtask);
+
+        assertTrue(subtask2 != manager.getSubtaskById(subtaskId), "после обновления эпик не должен быть старым");
+        assertTrue(newSubtask == manager.getSubtaskById(subtaskId), "после обновления эпик должен быть новым");
     }
 
     private ArrayList<Task> createSampleTasks(int taskCount) {

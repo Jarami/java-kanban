@@ -33,10 +33,6 @@ public class Task {
         return status;
     }
 
-    public void setStatus(TaskStatus status) {
-        this.status = status;
-    }
-
     @Override
     public final boolean equals(Object o) {
         if (this == o) return true;
