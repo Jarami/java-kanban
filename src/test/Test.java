@@ -77,7 +77,7 @@ public class Test {
         for (String message : messages) {
             System.out.println(message + '\n');
         }
-        System.out.println("Выполнено тестов: " + (passed + failed) + "; провалов: " + failed + "; ошибок: " + errors);
+        System.out.println("Выполнено тестов: " + (passed + failed) + ", провалов: " + failed + ", ошибок: " + errors);
         System.out.println("================================================================");
     }
 
@@ -107,6 +107,12 @@ public class Test {
 
     public void assertNull(Object o, String message) {
         if (o != null) {
+            throw new FailError(message);
+        }
+    }
+
+    public void assertNotNull(Object o, String message) {
+        if (o == null) {
             throw new FailError(message);
         }
     }

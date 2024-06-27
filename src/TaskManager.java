@@ -18,13 +18,25 @@ public class TaskManager {
         subtaskRepo = new HashMap<>();
     }
 
+    private int generateTaskId() {
+        return ++taskCounter;
+    }
+
     // Сохранение
     public void saveTask(Task task) {
-        task.setId(++taskCounter);
+
+        if (taskRepo.get(task.getId()) != null) {
+            System.out.println("Такая задача уже существует!");
+            return;
+        }
+
+        task.setId(generateTaskId());
         taskRepo.put(task.getId(), task);
         System.out.println("task created: " + task);
     }
 
+    // Подумать: нужно ли проверять, что статус у эпика соответствует статусам подзадач?
+    // Подумать: можно ли создать эпик/подзадачу сразу со статусом IN_PROGRESS/DONE?
     public void saveEpic(Epic epic) {
 
         if (epicRepo.get(epic.getId()) != null) {
@@ -32,7 +44,7 @@ public class TaskManager {
             return;
         }
 
-        epic.setId(++taskCounter);
+        epic.setId(generateTaskId());
         epicRepo.put(epic.getId(), epic);
         System.out.println("epic created: " + epic);
 
@@ -41,6 +53,7 @@ public class TaskManager {
         }
     }
 
+    // Подумать: нужен ли публичный метод создания подзадачи, как будто ее можно создать без эпика?
     public void saveSubtask(Subtask subtask) {
 
         if (subtaskRepo.get(subtask.getId()) != null) {
@@ -48,7 +61,7 @@ public class TaskManager {
             return;
         }
 
-        subtask.setId(++taskCounter);
+        subtask.setId(generateTaskId());
         subtaskRepo.put(subtask.getId(), subtask);
         System.out.println("subtask created: " + subtask);
     }
@@ -84,35 +97,48 @@ public class TaskManager {
 
     // Обновление
     public void updateTask(Task task) {
+        if (task.getId() == null) {
+            System.out.println("Обновить можно только ранее сохраненную задачу");
+            return;
+        }
         taskRepo.put(task.getId(), task);
     }
 
+    // Подумать: нужно ли проверять, что статус у эпика соответствует статусам подзадач?
     public void updateEpic(Epic epic) {
+        if (epic.getId() == null) {
+            System.out.println("Обновить можно только ранее сохраненный эпик");
+            return;
+        }
         epicRepo.put(epic.getId(), epic);
-        epic.update();
     }
 
     // При обновлении подзадачи нужно обновить родительский эпик
+    // todo: проверка обновления статуса эпика
     public void updateSubtask(Subtask subtask) {
         subtaskRepo.put(subtask.getId(), subtask);
         subtask.getEpic().update();
     }
 
     // Удаление
+    // todo: проверка удаления всех задач
     public void removeTasks() {
         taskRepo.clear();
     }
 
+    // todo: проверка удаления задачи по id (другие задачи не должны быть удалены)
     public void removeTaskById(int id) {
         taskRepo.remove(id);
     }
 
+    // todo: проверка удаления всех эпиков (все подзадачи тоже должны быть удалены)
     public void removeEpics() {
         subtaskRepo.clear();
         epicRepo.clear();
     }
 
     // При удалении эпика все его подзадачи тоже удаляются
+    // todo: проверка удаления эпика и всех его подзадач (другие эпики и подзадачи должны остаться)
     public void removeEpicById(int id) {
         Epic epic = epicRepo.get(id);
 
@@ -124,8 +150,8 @@ public class TaskManager {
         }
     }
 
-    // При удалении подзадачи из хранилища также нужно
-    // удалить их у эпиков
+    // При удалении подзадач из хранилища также нужно удалить их у эпиков
+    // todo: проверка удаления всех подзадач (у эпиков подзадачи тоже должны быть удалены)
     public void removeSubtasks() {
         for (Map.Entry<Integer, Epic> entry : epicRepo.entrySet()) {
             Epic epic = entry.getValue();
@@ -135,6 +161,8 @@ public class TaskManager {
     }
 
     // При удалении подзадачи нужно обновить родительский эпик
+    // todo: проверка удаления подзадачи (у эпика она тоже должна быть удалена)
+    // todo: проверка обновления статуса эпика после удаления подзадачи
     public void removeSubtaskById(int id) {
         Subtask subtask = subtaskRepo.get(id);
 
