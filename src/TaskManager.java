@@ -1,7 +1,4 @@
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 public class TaskManager {
 
@@ -67,24 +64,24 @@ public class TaskManager {
     }
 
     // Получение
-    public Collection<Task> getTasks() {
-        return taskRepo.values();
+    public List<Task> getTasks() {
+        return List.copyOf(taskRepo.values());
     }
 
     public Task getTaskById(int id) {
         return taskRepo.get(id);
     }
 
-    public Collection<Epic> getEpics() {
-        return epicRepo.values();
+    public List<Epic> getEpics() {
+        return List.copyOf(epicRepo.values());
     }
 
     public Epic getEpicById(int id) {
         return epicRepo.get(id);
     }
 
-    public Collection<Subtask> getSubtasks() {
-        return subtaskRepo.values();
+    public List<Subtask> getSubtasks() {
+        return List.copyOf(subtaskRepo.values());
     }
 
     public Subtask getSubtaskById(int id) {

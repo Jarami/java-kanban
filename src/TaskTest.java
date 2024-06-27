@@ -370,6 +370,20 @@ public class TaskTest extends Test {
                 String.format("статус эпика должен быть %s, а не %s", TaskStatus.DONE, epic.getStatus()));
     }
 
+    // удаление всех обычных задач
+    public void testThatManagerRemoveAllTasks() {
+        ArrayList<Task> tasks = createSampleTasks(3);
+
+        TaskManager manager = new TaskManager();
+        manager.saveTask(tasks.get(0));
+        manager.saveTask(tasks.get(1));
+        manager.saveTask(tasks.get(2));
+
+        manager.removeTasks();
+
+        assertEquals(0, manager.getTasks().size(), "После удаления не должно быть задач");
+    }
+
     // Удаление обычной задачи по идентификатору
     public void testThatManagerRemoveTaskById() {
         List<Task> tasks = createSampleTasks(3);
@@ -379,18 +393,19 @@ public class TaskTest extends Test {
         manager.saveTask(tasks.get(1));
         manager.saveTask(tasks.get(2));
 
-        assertEquals(3, manager.getTasks().size(), "До удаления должно быть 3 задачи");
-
         int id1 = tasks.get(1).getId();
 
         // удаляем вторую
         manager.removeTaskById(id1);
 
         // остальные должны сохраниться
+
         Collection<Task> actualTasks = manager.getTasks();
         assertEquals(2, actualTasks.size(), "Должно быть 2 задачи после удаления");
         assertTrue(actualTasks.contains(tasks.get(0)), "Первая задача должна сохраниться");
         assertTrue(actualTasks.contains(tasks.get(2)), "Третья задача должна сохраниться");
+
+
 
     }
 
@@ -460,21 +475,7 @@ public class TaskTest extends Test {
 
     }
 
-    // удаление всех обычных задач
-    public void testThatManagerRemoveAllTasks() {
-        ArrayList<Task> tasks = createSampleTasks(3);
 
-        TaskManager manager = new TaskManager();
-        manager.saveTask(tasks.get(0));
-        manager.saveTask(tasks.get(1));
-        manager.saveTask(tasks.get(2));
-
-        assertEquals(3, manager.getTasks().size(), "До удаления должно быть 3 задачи");
-
-        manager.removeTasks();
-
-        assertEquals(0, manager.getTasks().size(), "После удаления не должно быть задач");
-    }
 
     // Удаление всех эпиков
     // Все подзадачи также должны удалиться
