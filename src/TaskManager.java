@@ -2,14 +2,13 @@ import java.util.*;
 
 public class TaskManager {
 
-    private int taskCounter;
+    private static int taskCounter;
 
     private final HashMap<Integer, Task> taskRepo;
     private final HashMap<Integer, Epic> epicRepo;
     private final HashMap<Integer, Subtask> subtaskRepo;
 
     public TaskManager() {
-        taskCounter = 0;
         taskRepo = new HashMap<>();
         epicRepo = new HashMap<>();
         subtaskRepo = new HashMap<>();
