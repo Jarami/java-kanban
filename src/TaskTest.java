@@ -4,30 +4,48 @@ import test.Test;
 
 public class TaskTest extends Test {
 
-    // Проверить, что обычная задача создается
-    // У нее появляется статус NEW и id (после сохранения)
+    // Проверить, что обычная задача создается.
+    // У нее появляется статус NEW и id (после сохранения).
     private void testThatManagerCreateTaskWithIdAndStatus() {
-        Task task = new Task("задача", "описание задачи");
+
+        TaskManager manager = new TaskManager();
+
+        Task task = new Task("t", "dt");
         assertNull(task.getId(), "До сохранения у задачи не должен быть определен id");
         assertEquals(task.getStatus(), TaskStatus.NEW, "После создания у задачи должен быть статус NEW");
 
-        TaskManager manager = new TaskManager();
         manager.saveTask(task);
 
         assertNotNull(task.getId(), "После сохранения у задачи должен быть определен id");
         assertEquals(task.getStatus(), TaskStatus.NEW, "После сохранения у задачи должен быть статус NEW");
     }
 
-    // Проверить, что эпик создается
-    // У него появляется статус NEW и id (после сохранения)
-    // У всех его подзадач также появляется статус NEW и id (после сохранения)
+    // Проверить, что эпик создается.
+    // У него появляется статус NEW и id (после сохранения).
+    // У всех его подзадач также появляется статус NEW и id (после сохранения).
     private void testThatManagerCreateEpicWithIdAndStatus() {
-        Epic epic = createSampleEpic("эпик", 2);
+
+        TaskManager manager = new TaskManager();
+
+        Epic epic = createSampleEpic("e", 2);
+
         assertNull(epic.getId(), "До сохранения у эпика не должен быть определен id");
         assertEquals(epic.getStatus(), TaskStatus.NEW, "После создания у эпика должен быть статус NEW");
 
-        List<Subtask> subtasks = epic.getSubtasks();
-        assertEquals(2, subtasks.size(), "У эпика должно быть 2 подзадачи");
+        manager.saveTask(epic);
+
+        assertNotNull(epic.getId(), "После сохранения у эпика должен быть определен id");
+        assertEquals(epic.getStatus(), TaskStatus.NEW, "После сохранения у эпика должен быть статус NEW");
+    }
+
+    // Проверить, что подзадачи эпика сохраняются при сохранении эпика.
+    // У подзадач появляется id
+    private void testThatManagerSavesSubtasksAsEpicSaved() {
+
+        TaskManager manager = new TaskManager();
+
+        Epic epic = createSampleEpic("e", 2);
+        List<Subtask> subtasks = List.copyOf(epic.getSubtasks());
 
         for (Subtask subtask : subtasks) {
             assertNull(subtask.getId(),
@@ -37,11 +55,7 @@ public class TaskTest extends Test {
                     String.format("После создания у подзадачи %s должен быть статус NEW", subtask.getName()));
         }
 
-        TaskManager manager = new TaskManager();
         manager.saveTask(epic);
-
-        assertNotNull(epic.getId(), "После сохранения у эпика должен быть определен id");
-        assertEquals(epic.getStatus(), TaskStatus.NEW, "После сохранения у эпика должен быть статус NEW");
 
         for (Subtask subtask : subtasks) {
             assertNotNull(subtask.getId(),
@@ -55,12 +69,15 @@ public class TaskTest extends Test {
     // Проверить, что подзадача создается
     // У нее появляется статус NEW и id (после сохранения)
     public void testThatManagerCreateSubtaskWithIdAndStatus() {
+
+        TaskManager manager = new TaskManager();
+
         Epic epic = new Epic("эпик", "описание эпика");
         Subtask subtask = new Subtask("подзадача", "описание подзадачи", epic);
+
         assertNull(subtask.getId(), "До сохранения у подзадачи не должен быть определен id");
         assertEquals(subtask.getStatus(), TaskStatus.NEW, "После создания у подзадачи должен быть статус NEW");
 
-        TaskManager manager = new TaskManager();
         manager.saveSubtask(subtask);
 
         assertNotNull(subtask.getId(), "После сохранения у подзадачи должен быть определен id");
@@ -70,14 +87,15 @@ public class TaskTest extends Test {
     // Проверить, что идентификаторы разных задач отличаются
     public void testThatDifferentTasksHaveDifferentId() {
 
+        TaskManager manager = new TaskManager();
+
         List<Task> tasks = createSampleTasks(2);
         Epic epic1 = createSampleEpic("epic 1", 2);
         Epic epic2 = createSampleEpic("epic 2", 1);
         List<Subtask> subtasks1 = epic1.getSubtasks();
         List<Subtask> subtasks2 = epic2.getSubtasks();
 
-        // сохраняем задачи и эпики (у эпиков подзадачи сохранятся автоматически)
-        TaskManager manager = new TaskManager();
+        // сохраняем задачи, эпики и подзадачи
         manager.saveTask(tasks.get(0));
         manager.saveTask(tasks.get(1));
         manager.saveEpic(epic1);
@@ -106,73 +124,65 @@ public class TaskTest extends Test {
         manager.saveTask(tasks.get(1));
 
         List<Task> expectedTasks = List.of(tasks.get(0), tasks.get(1));
-        boolean isEqual = areListEqualOrderIgnored(expectedTasks, manager.getTasks());
-        assertTrue(isEqual,"должны возвращаться все обычные задачи");
+        assertCollectionEquals(expectedTasks, manager.getTasks());
     }
 
     // Проверить, что возвращается обычная задача по идентификатору
     public void testThatManagerReturnTaskById() {
-        // создаем 3 задачи, а сохраняем 2
-        List<Task> tasks = createSampleTasks(3);
 
         TaskManager manager = new TaskManager();
+
+        // создаем 3 задачи, а сохраняем 2
+        List<Task> tasks = createSampleTasks(3);
         manager.saveTask(tasks.get(0));
         manager.saveTask(tasks.get(1));
 
-        int taskId1 = tasks.get(0).getId();
-        Task task1 = manager.getTaskById(taskId1);
-        assertEquals(tasks.get(0), task1, "должна вернуться первая задача по id = " + taskId1);
-
-        int taskId2 = tasks.get(1).getId();
-        Task task2 = manager.getTaskById(taskId2);
-        assertEquals(tasks.get(1), task2, "должна вернуться вторая задача по id = " + taskId2);
-
-        assertEquals(2, manager.getTasks().size(), "должно быть всего 2 задачи");
+        int id = tasks.get(0).getId();
+        assertTaskEquals(tasks.get(0), manager.getTaskById(id));
     }
 
     // Проверить, что возвращаются все эпики
     public void testThatManagerReturnAllEpics() {
+
+        TaskManager manager = new TaskManager();
+
         // Создаем 3 эпика, а сохраняем 2
         Epic epic1 = createSampleEpic("epic 1", 2);
         Epic epic2 = createSampleEpic("epic 2", 1);
         Epic epic3 = createSampleEpic("epic 3", 0);
 
-        TaskManager manager = new TaskManager();
         manager.saveEpic(epic1);
         manager.saveEpic(epic2);
 
         List<Epic> expectedEpics = List.of(epic1, epic2);
-        boolean isEqual = areListEqualOrderIgnored(expectedEpics, manager.getEpics());
-        assertTrue(isEqual, "должны возвращаться все эпики");
+        assertCollectionEquals(expectedEpics, manager.getEpics());
     }
 
     // Проверить получение эпика по идентификатору
     public void testThatManagerReturnEpicById() {
+
+        TaskManager manager = new TaskManager();
+
         // создаем 3 эпика, а сохраняем 2
         Epic epic1 = createSampleEpic("epic 1", 1);
         Epic epic2 = createSampleEpic("epic 2", 2);
         Epic epic3 = createSampleEpic("epic 2", 3);
 
-        TaskManager manager = new TaskManager();
         manager.saveEpic(epic1);
         manager.saveEpic(epic2);
 
-        int id1 = epic1.getId();
-        assertEquals(epic1, manager.getEpicById(id1), "должен вернуться первый эпик по id = " + id1);
-
-        int id2 = epic2.getId();
-        assertEquals(epic2, manager.getEpicById(id2), "должен вернуться второй эпик по id = " + id2);
-
-        assertEquals(2, manager.getEpics().size(), "должно быть всего 2 эпика");
+        int id = epic1.getId();
+        assertEpicEquals(epic1, manager.getEpicById(id));
     }
 
     // Проверить, что возвращаются все подзадачи, даже если принадлежат разным эпикам
     public void testThatManagerReturnAllSubtasks() {
 
+        TaskManager manager = new TaskManager();
+
         Epic epic1 = createSampleEpic("epic 1", 2);
         Epic epic2 = createSampleEpic("epic 2", 1);
 
-        TaskManager manager = new TaskManager();
         manager.saveEpic(epic1);
         manager.saveEpic(epic2);
 
@@ -180,167 +190,106 @@ public class TaskTest extends Test {
         expectedSubtasks.addAll(epic1.getSubtasks());
         expectedSubtasks.addAll(epic2.getSubtasks());
 
-        boolean isEqual = areListEqualOrderIgnored(expectedSubtasks, manager.getSubtasks());
-        assertTrue(isEqual, "должны возвращаться все подзадачи");
+        assertCollectionEquals(expectedSubtasks, manager.getSubtasks());
     }
 
     // Проверить получение подзадач по идентификатору
     public void testThatManagerReturnSubtaskById() {
 
+        TaskManager manager = new TaskManager();
+
         Epic epic1 = createSampleEpic("эпик1", 2);
         Epic epic2 = createSampleEpic("эпик2", 1);
 
-        TaskManager manager = new TaskManager();
         manager.saveEpic(epic1);
         manager.saveEpic(epic2);
 
         List<Subtask> subtasks1 = epic1.getSubtasks();
-        List<Subtask> subtasks2 = epic2.getSubtasks();
-
         Subtask subtask11 = subtasks1.get(0);
         int id11 = subtask11.getId();
-        assertEquals(subtask11, manager.getSubtaskById(id11), "должна вернуться первая подзадача первого эпика по id = " + id11);
 
-        Subtask subtask12 = subtasks1.get(1);
-        int id12 = subtask12.getId();
-        assertEquals(subtask12, manager.getSubtaskById(id12), "должна вернуться вторая подзадача первого эпика по id = " + id12);
-
-        Subtask subtask21 = subtasks2.get(0);
-        int id21 = subtask21.getId();
-        assertEquals(subtask21, manager.getSubtaskById(id21), "должна вернуться первая подзадача второго эпика по id = " + id21);
-
-        assertEquals(3, manager.getSubtasks().size(), "должно быть только 3 подзадачи");
-    }
-
-    // Проверить, что эпик возвращает подзадачи
-    public void testThatEpicReturnsSubtasks() {
-        Epic epic = new Epic("эпик1", "");
-        Subtask subtask1 = new Subtask("подзадача1", "", epic);
-        Subtask subtask2 = new Subtask("подзадача2", "", epic);
-
-        epic.addSubtask(subtask1);
-        epic.addSubtask(subtask2);
-
-        List<Subtask> expectedSubtasks = List.of(subtask1, subtask2);
-        boolean isEqual = areListEqualOrderIgnored(expectedSubtasks, epic.getSubtasks());
-        assertTrue(isEqual, "Эпик должен возвращать свои подзадачи");
+        assertSubtaskEquals(subtask11, manager.getSubtaskById(id11));
     }
 
     // Проверить, что менеджер возвращает подзадачи эпика
     public void testThatManagerReturnsEpicSubtasks() {
-        Epic epic0 = createSampleEpic("epic0", 2);
-        Epic epic1 = createSampleEpic("epic1", 3);
 
         TaskManager manager = new TaskManager();
+
+        Epic epic0 = createSampleEpic("e0", 2);
+        Epic epic1 = createSampleEpic("e1", 3);
+
         manager.saveEpic(epic0);
         manager.saveEpic(epic1);
 
         List<Subtask> actualSubtasks = manager.getSubtasksByEpic(epic0);
         List<Subtask> expectedSubtasks = epic0.getSubtasks();
-        boolean areSubtasksEqual = areListEqualOrderIgnored(expectedSubtasks, actualSubtasks);
-        assertTrue(areSubtasksEqual, "менеджер должен возвращать подзадачи эпика");
+
+        assertCollectionEquals(expectedSubtasks, actualSubtasks);
     }
 
     // Проверить, что обычная задача обновляется
     public void testThatManagerUpdateTask() {
-        Task task = new Task("задача", "");
 
         TaskManager manager = new TaskManager();
+
+        Task task = new Task("t", "d");
         manager.saveTask(task);
 
-        int taskId = task.getId();
+        int id = task.getId();
 
-        assertTrue(task == manager.getTaskById(taskId), "до обновления задача должна быть старой");
-
-        Task newTask = new Task(taskId, "новая задача", "");
-
+        Task newTask = new Task(id, "nt", "nd");
         manager.updateTask(newTask);
 
-        assertTrue(newTask == manager.getTaskById(taskId),
-                "после обновления задача должна быть новой");
-    }
-
-    // Проверить, что обновляется только ранее сохраненная задача
-    public void testThatManagerUpdateOnlyExistingTask() {
-        Task task = new Task("задача", "");
-
-        TaskManager manager = new TaskManager();
-        manager.saveTask(task);
-
-        int taskId = task.getId();
-
-        Task newTask = new Task("новая задача", "");
-        manager.updateTask(newTask);
-
-        assertTrue(task == manager.getTaskById(taskId),
-                "после обновления задача должна остаться старой");
-
-        assertEquals(1, manager.getTasks().size(),
-                "должна быть одна задача, а не " + manager.getTasks().size());
+        assertTaskEquals(newTask, manager.getTaskById(id));
     }
 
     // Проверить, что эпик обновляется
     public void testThatManagerUpdateEpic() {
-        Epic epic = new Epic("e", "d");
 
         TaskManager manager = new TaskManager();
+
+        Epic epic = new Epic("e", "d");
         manager.saveEpic(epic);
+
         int epicId = epic.getId();
 
         Epic newEpic = new Epic(epicId, "ne", "nd");
         manager.updateEpic(newEpic);
 
-        assertTaskEquals(newEpic, manager.getEpicById(epicId));
+        assertEpicEquals(newEpic, manager.getEpicById(epicId));
     }
 
-    // Проверить, что обновляется только ранее сохраненный эпик
-    public void testThatManagerUpdateOnlyExistingEpic() {
-        Epic epic = new Epic("e", "d");
+    // Проверить обновление подзадачи.
+    // У родительского эпика новая подзадача тоже должна присутствовать.
+    public void testThatManagerUpdateSubtask() {
 
         TaskManager manager = new TaskManager();
-        manager.saveEpic(epic);
 
-        int epicId = epic.getId();
-
-        Epic newEpic = new Epic("ne", "nd");
-        manager.updateEpic(newEpic);
-
-        assertTaskEquals(epic, manager.getEpicById(epicId));
-
-        assertEquals(1, manager.getEpics().size(),
-                "должен быть один эпик, а не " + manager.getEpics().size());
-    }
-
-    // Проверить обновление подзадачи
-    // У родительского эпика новая подзадача тоже должна присутствовать
-    public void testThatManagerUpdateSubtask() {
         Epic epic = new Epic("e", "old-d");
         Subtask subtask1 = new Subtask("s1", "old-s1", epic);
         Subtask subtask2 = new Subtask("s2", "old-s2", epic);
-        Subtask subtask3 = new Subtask("s3", "old-s3", epic);
         epic.addSubtask(subtask1);
         epic.addSubtask(subtask2);
-        epic.addSubtask(subtask3);
 
-        TaskManager manager = new TaskManager();
         manager.saveEpic(epic);
 
-        int subtaskId = subtask2.getId();
+        int id = subtask2.getId();
 
-        Subtask newSubtask = new Subtask(subtaskId, "n", "d", epic);
+        Subtask newSubtask = new Subtask(id, "n", "d", epic);
         manager.updateSubtask(newSubtask);
 
         // проверяем репозиторий
-        assertTaskEquals(newSubtask, manager.getSubtaskById(subtaskId));
+        assertSubtaskEquals(newSubtask, manager.getSubtaskById(id));
 
         // проверяем подзадачи у конкретного эпика
         List<Subtask> actualSubtasks = manager.getSubtasksByEpic(epic);
-        Subtask actualSubtask = findSubtaskById(actualSubtasks, subtaskId);
-        System.out.println("actualSubtask = " + actualSubtask);
-        assertTaskEquals(newSubtask, actualSubtask);
+        Subtask actualSubtask = findSubtaskById(actualSubtasks, id);
+
+        assertSubtaskEquals(newSubtask, actualSubtask);
     }
 
-    // Проверить, что статус эпика обновляется после обновления его подзадачи
+    // Проверить, что статус эпика обновляется после обновления его подзадачи.
     public void testThatEpicStatusUpdatedAfterSubtaskUpdate() {
         TaskManager manager = new TaskManager();
 
@@ -358,7 +307,7 @@ public class TaskTest extends Test {
 
         // статус эпика должен стать IN_PROGRESS
         assertEquals(TaskStatus.IN_PROGRESS, epic.getStatus(),
-                String.format("статус эпика должен быть %s, а не %s", TaskStatus.IN_PROGRESS, epic.getStatus()));
+                String.format("статус эпика должен быть IN_PROGRESS, а не %s", epic.getStatus()));
 
         // "выполняем" обе подзадачи
         int id2 = subtask2.getId();
@@ -367,28 +316,27 @@ public class TaskTest extends Test {
 
         // статус эпика должен стать DONE
         assertEquals(TaskStatus.DONE, epic.getStatus(),
-                String.format("статус эпика должен быть %s, а не %s", TaskStatus.DONE, epic.getStatus()));
+                String.format("статус эпика должен быть DONE, а не %s", epic.getStatus()));
     }
 
-    // удаление всех обычных задач
+    // Проверить удаление всех обычных задач.
     public void testThatManagerRemoveAllTasks() {
-        ArrayList<Task> tasks = createSampleTasks(3);
+        ArrayList<Task> tasks = createSampleTasks(2);
 
         TaskManager manager = new TaskManager();
         manager.saveTask(tasks.get(0));
         manager.saveTask(tasks.get(1));
-        manager.saveTask(tasks.get(2));
 
         manager.removeTasks();
 
-        assertEquals(0, manager.getTasks().size(), "После удаления не должно быть задач");
+        assertEmpty(manager.getTasks(), "После удаления не должно быть задач");
     }
 
-    // Удаление обычной задачи по идентификатору
+    // Проверить удаление обычной задачи по идентификатору.
     public void testThatManagerRemoveTaskById() {
-        List<Task> tasks = createSampleTasks(3);
-
         TaskManager manager = new TaskManager();
+
+        List<Task> tasks = createSampleTasks(3);
         manager.saveTask(tasks.get(0));
         manager.saveTask(tasks.get(1));
         manager.saveTask(tasks.get(2));
@@ -399,189 +347,149 @@ public class TaskTest extends Test {
         manager.removeTaskById(id1);
 
         // остальные должны сохраниться
+        List<Task> expectedTasks = List.of(tasks.get(0), tasks.get(2));
 
-        Collection<Task> actualTasks = manager.getTasks();
-        assertEquals(2, actualTasks.size(), "Должно быть 2 задачи после удаления");
-        assertTrue(actualTasks.contains(tasks.get(0)), "Первая задача должна сохраниться");
-        assertTrue(actualTasks.contains(tasks.get(2)), "Третья задача должна сохраниться");
-
-
-
+        assertCollectionEquals(expectedTasks, manager.getTasks());
     }
 
-    // Удаление эпика по идентификатору
-    public void testThatManagerRemoveEpicById() {
+    // Проверить удаление всех эпиков.
+    // Все подзадачи также должны удалиться.
+    public void testThatManagerRemoveAllEpics() {
+
+        TaskManager manager = new TaskManager();
 
         Epic epic0 = createSampleEpic("epic0", 2);
         Epic epic1 = createSampleEpic("epic1", 3);
-        Epic epic2 = createSampleEpic("epic2", 4);
 
-        TaskManager manager = new TaskManager();
         manager.saveEpic(epic0);
         manager.saveEpic(epic1);
-        manager.saveEpic(epic2);
 
-        assertEquals(3, manager.getEpics().size(), "До удаления должно быть 3 эпика");
-        assertEquals(9, manager.getSubtasks().size(), "До удаления должно быть 9 подзадач");
+        manager.removeEpics();
 
-        // сохраняем подзадачи первого и третьего эпиков перед удалением
-        ArrayList<Subtask> subtasks0 = new ArrayList<>(epic0.getSubtasks());
-        ArrayList<Subtask> subtasks2 = new ArrayList<>(epic2.getSubtasks());
+        assertEmpty(manager.getEpics(), "После удаления не должно быть эпиков");
+        assertEmpty(manager.getSubtasks(), "После удаления не должно быть подзадач");
+    }
+
+    // Проверить удаление эпика по идентификатору.
+    // Его подзадачи тоже должны удалиться.
+    public void testThatManagerRemoveEpicById() {
+
+        TaskManager manager = new TaskManager();
+
+        Epic epic0 = createSampleEpic("epic0", 2);
+        Epic epic1 = createSampleEpic("epic1", 3);
+
+        manager.saveEpic(epic0);
+        manager.saveEpic(epic1);
+
+        // сохраняем подзадачи первого эпика перед удалением
+        List<Subtask> expectedSubtasks = List.copyOf(epic0.getSubtasks());
 
         // удаляем второй эпик
         manager.removeEpicById(epic1.getId());
 
-        // проверяем эпики - второй должен удалиться
-        Collection<Epic> actualEpics = manager.getEpics();
-        assertEquals(2, actualEpics.size(), "После удаления должно быть 2 эпика");
-        assertTrue(actualEpics.contains(epic0),"Первый эпик должен сохраниться");
-        assertTrue(actualEpics.contains(epic2),"Третий эпик должен сохраниться");
+        // проверяем эпики - должен остаться только первый
+        assertCollectionEquals(List.of(epic0), manager.getEpics());
 
-        // проверяем подзадачи - подзадачи второго эпика должны удалиться
-        Collection<Subtask> actualSubtasks = manager.getSubtasks();
-        assertTrue(actualSubtasks.containsAll(subtasks0),"Подзадачи первого эпика должны сохраниться");
-        assertTrue(actualSubtasks.containsAll(subtasks2),"Подзадачи второго эпика должны сохраниться");
-
-        int expectedSubtaskCount = subtasks0.size() + subtasks2.size();
-        assertEquals(expectedSubtaskCount, actualSubtasks.size(), "Подзадачи второго эпика должны удалиться");
+        // проверяем подзадачи - должны остаться только подзадачи первого эпика
+        assertCollectionEquals(expectedSubtasks, manager.getSubtasks());
     }
 
-    // Удаление подзадачи по идентификатору:
-    // после удаления подзадача не должна возвращаться из родительского эпика
+    // Проверить удаление всех подзадач.
+    // Эпики не должны быть удалены, потому что они могут существовать без подзадач,
+    // но все подзадачи у эпиков должны быть удалены
+    public void testThatManagerRemoveAllSubtasks() {
+        TaskManager manager = new TaskManager();
+
+        Epic epic0 = createSampleEpic("e0", 2);
+        Epic epic1 = createSampleEpic("e1", 3);
+        manager.saveEpic(epic0);
+        manager.saveEpic(epic1);
+
+        manager.removeSubtasks();
+
+        assertEmpty(manager.getSubtasks(), "После удаления не должно быть подзадач");
+        assertEmpty(manager.getSubtasksByEpic(epic0), "После удаления у первого эпика не должно быть подзадач");
+        assertEmpty(manager.getSubtasksByEpic(epic1), "После удаления у второго эпика не должно быть подзадач");
+    }
+
+    // Удаление подзадачи по идентификатору.
+    // После удаления подзадача не должна возвращаться из родительского эпика.
     public void testThatManagerRemoveSubtaskById() {
-        Epic epic = createSampleEpic("epic1", 3);
 
         TaskManager manager = new TaskManager();
+
+        Epic epic = createSampleEpic("epic1", 3);
         manager.saveEpic(epic);
 
-        assertEquals(3, manager.getSubtasks().size(), "До удаления должно быть 3 подзадачи");
-
-        ArrayList<Subtask> subtasks = new ArrayList<>(epic.getSubtasks());
+        List<Subtask> subtasks = epic.getSubtasks();
+        List<Subtask> expectedSubtasks = List.of(subtasks.get(0), subtasks.get(2));
 
         // удаляем вторую
         manager.removeSubtaskById(subtasks.get(1).getId());
 
         // остальные должны сохраниться в общем списке ...
-        Collection<Subtask> actualSubtasks = manager.getSubtasks();
-        assertEquals(2, actualSubtasks.size(), "Должно быть 2 подзадачи после удаления");
-        assertTrue(actualSubtasks.contains(subtasks.get(0)), "Первая подзадача должна сохраниться");
-        assertTrue(actualSubtasks.contains(subtasks.get(2)), "Третья подзадача должна сохраниться");
+        assertCollectionEquals(expectedSubtasks, manager.getSubtasks());
 
         // ... и у эпика
-        ArrayList<Subtask> actualEpicSubtasks = epic.getSubtasks();
-        assertEquals(2, actualEpicSubtasks.size(), "У эпика должно быть 2 подзадачи после удаления");
-        assertTrue(actualEpicSubtasks.contains(subtasks.get(0)), "Первая подзадача у эпика должна сохраниться");
-        assertTrue(actualEpicSubtasks.contains(subtasks.get(2)), "Третья подзадача у эпика должна сохраниться");
-
+        assertCollectionEquals(expectedSubtasks, manager.getSubtasksByEpic(epic));
     }
 
-
-
-    // Удаление всех эпиков
-    // Все подзадачи также должны удалиться
-    public void testThatManagerRemoveAllEpics() {
-        Epic epic0 = createSampleEpic("epic0", 2);
-        Epic epic1 = createSampleEpic("epic1", 3);
-        Epic epic2 = createSampleEpic("epic2", 4);
+    // Проверить обновление статуса эпика после удаления всех его подзадач.
+    // Должен стать NEW.
+    public void testThatEpicStatusUpdatedAfterSubtaskRemoval() {
 
         TaskManager manager = new TaskManager();
-        manager.saveEpic(epic0);
-        manager.saveEpic(epic1);
-        manager.saveEpic(epic2);
 
-        assertEquals(3, manager.getEpics().size(), "До удаления должно быть 3 эпика");
-        assertEquals(9, manager.getSubtasks().size(), "До удаления должно быть 9 подзадач");
-
-        manager.removeEpics();
-
-        assertEquals(0, manager.getEpics().size(), "После удаления не должно быть эпиков");
-        assertEquals(0, manager.getSubtasks().size(), "После удаления не должно быть подзадач");
-    }
-
-    // удаление всех подзадач
-    // эпики не должны быть удалены, потому что они могут существовать без подзадач,
-    // но все подзадачи у эпиков должны быть удалены
-    public void testThatManagerRemoveAllSubtasks() {
-        Epic epic0 = createSampleEpic("epic0", 2);
-        Epic epic1 = createSampleEpic("epic1", 3);
-
-        TaskManager manager = new TaskManager();
-        manager.saveEpic(epic0);
-        manager.saveEpic(epic1);
-
-        assertEquals(2, manager.getEpics().size(), "До удаления должно быть 3 эпика");
-        assertEquals(5, manager.getSubtasks().size(), "До удаления должно быть 9 подзадач");
-
-        manager.removeSubtasks();
-
-        assertEquals(2, manager.getEpics().size(), "После удаления не должно быть эпиков");
-        assertEquals(0, manager.getSubtasks().size(), "После удаления не должно быть подзадач");
-
-        assertEmpty(epic0.getSubtasks(), "После удаления у первого эпика не должно быть подзадач");
-        assertEmpty(epic1.getSubtasks(), "После удаления у второго эпика не должно быть подзадач");
-    }
-
-    // После удаления всех подзадач у всех эпиков должен обновиться статус на NEW
-    public void testThatEpicStatusChangesToNewAfterAllSubtasksRemoval() {
         // У этого эпика статус DONE
-        Epic epic1 = new Epic("эпик1", "");
-        Subtask subtask11 = new Subtask("подзадача11", "", TaskStatus.DONE, epic1);
-        Subtask subtask12 = new Subtask("подзадача12", "", TaskStatus.DONE, epic1);
+        Epic epic1 = new Epic("e1", "de1");
+        Subtask subtask11 = new Subtask("s11", "ds11", TaskStatus.DONE, epic1);
         epic1.addSubtask(subtask11);
-        epic1.addSubtask(subtask12);
 
         // У этого эпика статус IN_PROGRESS
-        Epic epic2 = new Epic("эпик2", "");
-        Subtask subtask21 = new Subtask("подзадача21", "", TaskStatus.IN_PROGRESS, epic2);
-        epic1.addSubtask(subtask21);
-
-        // У этого эпика статус NEW
-        Epic epic3 = new Epic("эпик1", "");
-
-        TaskManager manager = new TaskManager();
+        Epic epic2 = new Epic("e2", "de2");
+        Subtask subtask21 = new Subtask("s21", "ds21", TaskStatus.IN_PROGRESS, epic2);
+        epic2.addSubtask(subtask21);
+        System.out.println();
         manager.saveEpic(epic1);
         manager.saveEpic(epic2);
-        manager.saveEpic(epic3);
 
-        assertEquals(3, manager.getEpics().size(), "Должно сохраниться 3 эпика");
+        manager.removeSubtaskById(subtask11.getId());
 
-        manager.removeSubtasks();
+        assertEquals(TaskStatus.NEW, epic1.getStatus(),
+                String.format("статус первого эпика должен быть NEW, а не %s", epic1.getStatus()));
 
-        assertEquals(TaskStatus.NEW, epic1.getStatus(), "У эпика 1 должен быть статус NEW");
-        assertEquals(TaskStatus.NEW, epic2.getStatus(), "У эпика 2 должен быть статус NEW");
-        assertEquals(TaskStatus.NEW, epic3.getStatus(), "У эпика 3 должен быть статус NEW");
-
-    }
-
-    // Обновление статуса эпика после удаления всех его подзадач
-    // Должен стать NEW
-    private void testThatEpicStatusUpdatedAfterSubtaskRemoval() {
-
+        assertEquals(TaskStatus.IN_PROGRESS, epic2.getStatus(),
+                String.format("статус второго эпика должен быть IN_PROGRESS, а не %s", epic2.getStatus()));
     }
 
     private ArrayList<Task> createSampleTasks(int taskCount) {
         ArrayList<Task> tasks = new ArrayList<>();
         for (int i = 0; i < taskCount; i++) {
-            tasks.add(new Task("задача " + i, "описание задачи " + i));
+            tasks.add(new Task("t" + i, "dt" + i));
         }
         return tasks;
     }
 
     private Epic createSampleEpic(String epicName, int subtaskCount) {
 
-        Epic epic = new Epic(epicName, "описание " + epicName);
+        Epic epic = new Epic(epicName, "d" + epicName);
 
         for (int i = 0; i < subtaskCount; i++) {
-            String subtaskName = epicName + ", подзадача " + i;
-            String subtaskDesc = "описание подзадачи " + i + " эпика " + epicName;
+            String subtaskName = epicName + ":s" + i;
+            String subtaskDesc = "ds" + i + " of " + epicName;
             Subtask subtask = new Subtask(subtaskName, subtaskDesc, epic);
             epic.addSubtask(subtask);
         }
         return epic;
     }
 
-    private <T> boolean areListEqualOrderIgnored(Collection<T> list1, Collection<T> list2) {
-        return list1.containsAll(list2) && list2.containsAll(list1);
+    private <T> void assertCollectionEquals(Collection<T> expected, Collection<T> actual) {
+        assertEquals(expected.size(), actual.size(),
+                String.format("размер должен быть %s, а не %s", expected.size(), actual.size()));
+
+        assertTrue(expected.containsAll(actual), "ожидаемая коллекция не содержит всех элементов текущей");
+        assertTrue(actual.containsAll(expected), "текущая коллекция не содержит всех элементов ожидаемой");
     }
 
     private void assertTaskEquals(Task expectedTask, Task actualTask) {
@@ -601,15 +509,16 @@ public class TaskTest extends Test {
                 String.format("статус должен быть %s, а не %s", expectedTask.getStatus(), actualTask.getStatus()));
     }
 
-    private void assertTaskEquals(Subtask expectedSubtask, Subtask actualSubtask) {
-        assertTaskEquals((Task)expectedSubtask, (Task)actualSubtask);
+    private void assertSubtaskEquals(Subtask expectedSubtask, Subtask actualSubtask) {
+
+        assertTaskEquals(expectedSubtask, actualSubtask);
 
         assertEquals(expectedSubtask.getEpic(), actualSubtask.getEpic(),
                 String.format("эпик должен быть %s, а не %s", expectedSubtask.getEpic(), actualSubtask.getEpic()));
     }
 
-    private void assertTaskEquals(Epic expectedEpic, Epic actualEpic) {
-        assertTaskEquals((Task)expectedEpic, (Task)actualEpic);
+    private void assertEpicEquals(Epic expectedEpic, Epic actualEpic) {
+        assertTaskEquals(expectedEpic, actualEpic);
 
         List<Subtask> expectedSubtasks = expectedEpic.getSubtasks();
         List<Subtask> actualSubtasks = actualEpic.getSubtasks();
@@ -617,7 +526,7 @@ public class TaskTest extends Test {
                 "количество подзадач должно быть %s, а не %s", expectedSubtasks.size(), actualSubtasks.size()));
 
         for (int i = 0; i < expectedSubtasks.size(); i++) {
-            assertTaskEquals(expectedSubtasks.get(i), actualSubtasks.get(i));
+            assertSubtaskEquals(expectedSubtasks.get(i), actualSubtasks.get(i));
         }
     }
 

@@ -117,24 +117,20 @@ public class TaskManager {
     }
 
     // Удаление
-    // todo: проверка удаления всех задач
     public void removeTasks() {
         taskRepo.clear();
     }
 
-    // todo: проверка удаления задачи по id (другие задачи не должны быть удалены)
     public void removeTaskById(int id) {
         taskRepo.remove(id);
     }
 
-    // todo: проверка удаления всех эпиков (все подзадачи тоже должны быть удалены)
     public void removeEpics() {
         subtaskRepo.clear();
         epicRepo.clear();
     }
 
     // При удалении эпика все его подзадачи тоже удаляются
-    // todo: проверка удаления эпика и всех его подзадач (другие эпики и подзадачи должны остаться)
     public void removeEpicById(int id) {
         Epic epic = epicRepo.get(id);
 
@@ -147,7 +143,6 @@ public class TaskManager {
     }
 
     // При удалении подзадач из хранилища также нужно удалить их у эпиков
-    // todo: проверка удаления всех подзадач (у эпиков подзадачи тоже должны быть удалены)
     public void removeSubtasks() {
         for (Map.Entry<Integer, Epic> entry : epicRepo.entrySet()) {
             Epic epic = entry.getValue();
@@ -157,8 +152,6 @@ public class TaskManager {
     }
 
     // При удалении подзадачи нужно обновить родительский эпик
-    // todo: проверка удаления подзадачи (у эпика она тоже должна быть удалена)
-    // todo: проверка обновления статуса эпика после удаления подзадачи
     public void removeSubtaskById(int id) {
         Subtask subtask = subtaskRepo.get(id);
 
