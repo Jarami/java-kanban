@@ -6,7 +6,7 @@ public class TaskTest extends Test {
 
     // Проверить, что обычная задача создается.
     // У нее появляется статус NEW и id (после сохранения).
-    private void testThatManagerCreateTaskWithIdAndStatus() {
+    public void testThatManagerCreateTaskWithIdAndStatus() {
 
         TaskManager manager = new TaskManager();
 
@@ -23,7 +23,7 @@ public class TaskTest extends Test {
     // Проверить, что эпик создается.
     // У него появляется статус NEW и id (после сохранения).
     // У всех его подзадач также появляется статус NEW и id (после сохранения).
-    private void testThatManagerCreateEpicWithIdAndStatus() {
+    public void testThatManagerCreateEpicWithIdAndStatus() {
 
         TaskManager manager = new TaskManager();
 
@@ -40,7 +40,7 @@ public class TaskTest extends Test {
 
     // Проверить, что подзадачи эпика сохраняются при сохранении эпика.
     // У подзадач появляется id
-    private void testThatManagerSavesSubtasksAsEpicSaved() {
+    public void testThatManagerSavesSubtasksAsEpicSaved() {
 
         TaskManager manager = new TaskManager();
 
@@ -55,7 +55,7 @@ public class TaskTest extends Test {
                     String.format("После создания у подзадачи %s должен быть статус NEW", subtask.getName()));
         }
 
-        manager.saveTask(epic);
+        manager.saveEpic(epic);
 
         for (Subtask subtask : subtasks) {
             assertNotNull(subtask.getId(),
