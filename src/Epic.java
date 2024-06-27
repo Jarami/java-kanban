@@ -19,6 +19,24 @@ public class Epic extends Task {
         update();
     }
 
+    public void replaceSubtask(Subtask subtask) {
+        if (subtask == null || subtask.getId() == null) {
+            return;
+        }
+
+        int id = subtask.getId();
+
+        for (int i = 0; i < subtasks.size(); i++) {
+            if (subtasks.get(i) != null && subtasks.get(i).getId() == id) {
+                subtasks.set(i, subtask);
+                update();
+                return;
+            }
+        }
+
+        System.out.println("Не удалось заменить подзадачу по id = " + id);
+    }
+
     public ArrayList<Subtask> getSubtasks() {
         return subtasks;
     }

@@ -114,10 +114,9 @@ public class TaskManager {
     }
 
     // При обновлении подзадачи нужно обновить родительский эпик
-    // todo: проверка обновления статуса эпика
     public void updateSubtask(Subtask subtask) {
         subtaskRepo.put(subtask.getId(), subtask);
-        subtask.getEpic().update();
+        subtask.getEpic().replaceSubtask(subtask);
     }
 
     // Удаление

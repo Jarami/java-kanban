@@ -8,19 +8,19 @@ public class Task {
     protected TaskStatus status;
 
     public Task(String name, String description) {
-        this.name = name;
-        this.description = description;
-        this.status = TaskStatus.NEW;
+        this(null, name, description, TaskStatus.NEW);
     }
 
     public Task(Integer id, String name, String description) {
-        this.id = id;
-        this.name = name;
-        this.description = description;
-        this.status = TaskStatus.NEW;
+        this(id, name, description, TaskStatus.NEW);
     }
 
     public Task(String name, String description, TaskStatus status) {
+        this(null, name, description, status);
+    }
+
+    public Task(Integer id, String name, String description, TaskStatus status) {
+        this.id = id;
         this.name = name;
         this.description = description;
         this.status = status;
