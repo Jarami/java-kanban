@@ -1,8 +1,41 @@
+import java.lang.reflect.Method;
 import java.util.*;
 
 import test.Test;
 
 public class TaskTest extends Test {
+
+    public void testThatEpicStatusChangesAsSubtaskStatusChanges() {
+        TaskManager taskManager = new TaskManager();
+
+        Epic epic1 = new Epic("Эпик 1","Нужно сделать");
+        taskManager.saveEpic(epic1);
+
+        Subtask subtask1 = new Subtask("Subtask1 создания", "Написать что то",epic1);
+        taskManager.saveSubtask(subtask1);
+
+        Subtask subtask2 = new Subtask("Subtask2 создания", "Написать что то",epic1);
+        taskManager.saveSubtask(subtask2);
+
+        System.out.println(epic1);
+
+        subtask1.setStatus(TaskStatus.IN_PROGRESS);
+        taskManager.updateSubtask(subtask1);
+
+        System.out.println(epic1);
+
+        subtask2.setStatus(TaskStatus.DONE);
+        taskManager.updateSubtask(subtask2);
+
+        System.out.println(epic1);
+
+        subtask1.setStatus(TaskStatus.DONE);
+        taskManager.updateSubtask(subtask1);
+
+        System.out.println(epic1);
+
+        assertEquals(TaskStatus.DONE, epic1.getStatus(), "должен быть статус DONE, а не " + epic1.getStatus());
+    }
 
     // Проверить, что обычная задача создается.
     // У нее появляется статус NEW и id (после сохранения).

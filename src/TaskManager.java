@@ -59,6 +59,9 @@ public class TaskManager {
 
         subtask.setId(generateTaskId());
         subtaskRepo.put(subtask.getId(), subtask);
+        if (subtask.getEpic() != null) {
+            subtask.getEpic().addSubtask(subtask);
+        }
         System.out.println("subtask created: " + subtask);
     }
 
