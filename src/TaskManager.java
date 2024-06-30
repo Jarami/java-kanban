@@ -163,4 +163,42 @@ public class TaskManager {
             subtaskRepo.remove(id);
         }
     }
+
+
+    public void updateEpicStatus(Epic epic) {
+        // обновляем статус
+        List<Subtask> subtasks = epic.getSubtasks();
+
+        if (subtasks.isEmpty() || areAllSubtasksNew(subtasks)) {
+            epic.setStatus(TaskStatus.NEW);
+
+        } else if (areAllSubtasksDone(subtasks)) {
+            epic.setStatus(TaskStatus.DONE);
+
+        } else {
+            epic.setStatus(TaskStatus.IN_PROGRESS);
+        }
+    }
+
+    private boolean areAllSubtasksNew(List<Subtask> subtasks) {
+        return areAllSubtasksHaveStatus(subtasks, TaskStatus.NEW);
+    }
+
+    private boolean areAllSubtasksDone(List<Subtask> subtasks) {
+        return areAllSubtasksHaveStatus(subtasks, TaskStatus.DONE);
+    }
+
+    private boolean areAllSubtasksHaveStatus(List<Subtask> subtasks, TaskStatus taskStatus) {
+        if (subtasks.isEmpty()) {
+            return false;
+        }
+
+        for (Subtask subtask : subtasks) {
+            if (subtask.getStatus() != taskStatus) {
+                return false;
+            }
+        }
+
+        return true;
+    }
 }
