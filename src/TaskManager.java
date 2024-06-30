@@ -56,8 +56,8 @@ public class TaskManager {
         subtaskRepo.put(subtask.getId(), subtask);
 
         // добавляем id подзадачи эпику
-        Epic epic = getEpicForSubtask(subtask);
-        epic.addSubtaskId(subtask.getId());
+        Epic epic = getEpicOfSubtask(subtask);
+        epic.addSubtaskIdIfAbsent(subtask.getId());
         updateEpicStatus(epic);
 
         System.out.println("subtask created: " + subtask);
@@ -88,7 +88,7 @@ public class TaskManager {
         return subtaskRepo.get(id);
     }
 
-    public ArrayList<Subtask> getSubtasksByEpic(Epic epic) {
+    public ArrayList<Subtask> getSubtasksOfEpic(Epic epic) {
         ArrayList<Subtask> subtasks = new ArrayList<>();
         for (Integer subtaskId : epic.getSubtasksId()) {
             subtasks.add(subtaskRepo.get(subtaskId));
@@ -96,7 +96,7 @@ public class TaskManager {
         return subtasks;
     }
 
-    public Epic getEpicForSubtask(Subtask subtask) {
+    public Epic getEpicOfSubtask(Subtask subtask) {
         return epicRepo.get(subtask.getEpicId());
     }
 
@@ -121,7 +121,7 @@ public class TaskManager {
     // При обновлении подзадачи нужно обновить родительский эпик
     public void updateSubtask(Subtask subtask) {
         subtaskRepo.put(subtask.getId(), subtask);
-        updateEpicStatus(getEpicForSubtask(subtask));
+        updateEpicStatus(getEpicOfSubtask(subtask));
     }
 
     // Удаление
@@ -168,16 +168,16 @@ public class TaskManager {
 
         if (subtask != null) {
             subtaskRepo.remove(id);
-            Epic epic = getEpicForSubtask(subtask);
+            Epic epic = getEpicOfSubtask(subtask);
             epic.removeSubtaskId(subtask.getId());
             updateEpicStatus(epic);
         }
     }
 
 
-    public void updateEpicStatus(Epic epic) {
+    private void updateEpicStatus(Epic epic) {
         // обновляем статус
-        List<Subtask> subtasks = getSubtasksByEpic(epic);
+        List<Subtask> subtasks = getSubtasksOfEpic(epic);
 
         if (subtasks.isEmpty() || areAllSubtasksNew(subtasks)) {
             epic.setStatus(TaskStatus.NEW);

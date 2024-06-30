@@ -97,8 +97,8 @@ public class TaskTest extends Test {
         Epic epic1 = saveEpicWithSubtasks(manager, "epic 1", 2);
         Epic epic2 = saveEpicWithSubtasks(manager, "epic 2", 1);
 
-        List<Subtask> subtasks1 = manager.getSubtasksByEpic(epic1);
-        List<Subtask> subtasks2 = manager.getSubtasksByEpic(epic2);
+        List<Subtask> subtasks1 = manager.getSubtasksOfEpic(epic1);
+        List<Subtask> subtasks2 = manager.getSubtasksOfEpic(epic2);
 
         // сохраняем задачи, эпики и подзадачи
 
@@ -185,8 +185,8 @@ public class TaskTest extends Test {
         Epic epic2 = saveEpicWithSubtasks(manager, "e2", 1);
 
         List<Subtask> expectedSubtasks = new ArrayList<>();
-        expectedSubtasks.addAll(manager.getSubtasksByEpic(epic1));
-        expectedSubtasks.addAll(manager.getSubtasksByEpic(epic2));
+        expectedSubtasks.addAll(manager.getSubtasksOfEpic(epic1));
+        expectedSubtasks.addAll(manager.getSubtasksOfEpic(epic2));
 
         assertCollectionEquals(expectedSubtasks, manager.getSubtasks());
     }
@@ -199,7 +199,7 @@ public class TaskTest extends Test {
         Epic epic1 = saveEpicWithSubtasks(manager, "эпик1", 2);
         Epic epic2 = saveEpicWithSubtasks(manager, "эпик2", 1);
 
-        List<Subtask> subtasks1 = manager.getSubtasksByEpic(epic1);
+        List<Subtask> subtasks1 = manager.getSubtasksOfEpic(epic1);
         Subtask subtask11 = subtasks1.get(0);
         int id11 = subtask11.getId();
 
@@ -220,7 +220,7 @@ public class TaskTest extends Test {
         Subtask subtask2 = new Subtask("s2", "d2", epic);
         manager.saveSubtask(subtask2);
 
-        List<Subtask> actualSubtasks = manager.getSubtasksByEpic(epic);
+        List<Subtask> actualSubtasks = manager.getSubtasksOfEpic(epic);
         List<Subtask> expectedSubtasks = List.of(subtask1, subtask2);
 
         assertCollectionEquals(expectedSubtasks, actualSubtasks);
@@ -283,7 +283,7 @@ public class TaskTest extends Test {
         assertSubtaskEquals(newSubtask, manager.getSubtaskById(id));
 
         // проверяем подзадачи у конкретного эпика
-        List<Subtask> actualSubtasks = manager.getSubtasksByEpic(epic);
+        List<Subtask> actualSubtasks = manager.getSubtasksOfEpic(epic);
         Subtask actualSubtask = findSubtaskById(actualSubtasks, id);
 
         assertSubtaskEquals(newSubtask, actualSubtask);
@@ -382,7 +382,7 @@ public class TaskTest extends Test {
         Epic epic1 = saveEpicWithSubtasks(manager, "e1", 3);
 
         // сохраняем подзадачи первого эпика перед удалением
-        List<Subtask> expectedSubtasks = List.copyOf(manager.getSubtasksByEpic(epic0));
+        List<Subtask> expectedSubtasks = List.copyOf(manager.getSubtasksOfEpic(epic0));
 
         // удаляем второй эпик
         manager.removeEpicById(epic1.getId());
@@ -406,8 +406,8 @@ public class TaskTest extends Test {
         manager.removeSubtasks();
 
         assertEmpty(manager.getSubtasks(), "После удаления не должно быть подзадач");
-        assertEmpty(manager.getSubtasksByEpic(epic0), "После удаления у первого эпика не должно быть подзадач");
-        assertEmpty(manager.getSubtasksByEpic(epic1), "После удаления у второго эпика не должно быть подзадач");
+        assertEmpty(manager.getSubtasksOfEpic(epic0), "После удаления у первого эпика не должно быть подзадач");
+        assertEmpty(manager.getSubtasksOfEpic(epic1), "После удаления у второго эпика не должно быть подзадач");
     }
 
     // Удаление подзадачи по идентификатору.
@@ -418,7 +418,7 @@ public class TaskTest extends Test {
 
         Epic epic = saveEpicWithSubtasks(manager,"epic1", 3);
 
-        List<Subtask> subtasks = manager.getSubtasksByEpic(epic);
+        List<Subtask> subtasks = manager.getSubtasksOfEpic(epic);
         List<Subtask> expectedSubtasks = List.of(subtasks.get(0), subtasks.get(2));
 
         // удаляем вторую
@@ -428,7 +428,7 @@ public class TaskTest extends Test {
         assertCollectionEquals(expectedSubtasks, manager.getSubtasks());
 
         // ... и у эпика
-        assertCollectionEquals(expectedSubtasks, manager.getSubtasksByEpic(epic));
+        assertCollectionEquals(expectedSubtasks, manager.getSubtasksOfEpic(epic));
     }
 
     // Проверить обновление статуса эпика после удаления всех его подзадач.

@@ -3,7 +3,7 @@ import java.util.List;
 
 public class Epic extends Task {
 
-    private List<Integer> subtasksId;
+    private final List<Integer> subtasksId;
 
     public Epic(String name, String description) {
         super(name, description);
@@ -15,7 +15,7 @@ public class Epic extends Task {
         this.subtasksId = new ArrayList<>();
     }
 
-    public void addSubtaskId(Integer subtaskId) {
+    public void addSubtaskIdIfAbsent(Integer subtaskId) {
         if (!subtasksId.contains(subtaskId)) {
             subtasksId.add(subtaskId);
         }
