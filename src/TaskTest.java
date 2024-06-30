@@ -1,4 +1,3 @@
-import java.lang.reflect.Method;
 import java.util.*;
 
 import test.Test;
@@ -55,43 +54,15 @@ public class TaskTest extends Test {
 
     // Проверить, что эпик создается.
     // У него появляется статус NEW и id.
-    // У всех его подзадач также появляется статус NEW и id.
     public void testThatManagerCreateEpicWithIdAndStatus() {
 
         TaskManager manager = new TaskManager();
 
-        Epic epic = saveSampleEpicWithSubtasks(manager, "e", 2);
+        Epic epic = new Epic("e", "d");
+        manager.saveEpic(epic);
 
         assertNotNull(epic.getId(), "После сохранения у эпика должен быть определен id");
         assertEquals(epic.getStatus(), TaskStatus.NEW, "После сохранения у эпика должен быть статус NEW");
-    }
-
-    // Проверить, что подзадачи эпика сохраняются при сохранении эпика.
-    // У подзадач появляется id
-    public void testThatManagerSavesSubtasksAsEpicSaved() {
-
-        TaskManager manager = new TaskManager();
-
-        Epic epic = createSampleEpic("e", 2);
-        List<Subtask> subtasks = List.copyOf(epic.getSubtasks());
-
-        for (Subtask subtask : subtasks) {
-            assertNull(subtask.getId(),
-                    String.format("До сохранения у подзадачи %s не должен быть определен id", subtask.getName()));
-
-            assertEquals(subtask.getStatus(), TaskStatus.NEW,
-                    String.format("После создания у подзадачи %s должен быть статус NEW", subtask.getName()));
-        }
-
-        manager.saveEpic(epic);
-
-        for (Subtask subtask : subtasks) {
-            assertNotNull(subtask.getId(),
-                    String.format("После сохранения у подзадачи %s должен быть определен id", subtask.getName()));
-
-            assertEquals(subtask.getStatus(), TaskStatus.NEW,
-                    String.format("После создания у подзадачи %s должен быть статус NEW", subtask.getName()));
-        }
     }
 
     // Проверить, что подзадача создается
@@ -101,6 +72,8 @@ public class TaskTest extends Test {
         TaskManager manager = new TaskManager();
 
         Epic epic = new Epic("эпик", "описание эпика");
+        manager.saveEpic(epic);
+
         Subtask subtask = new Subtask("подзадача", "описание подзадачи", epic);
 
         assertNull(subtask.getId(), "До сохранения у подзадачи не должен быть определен id");
@@ -121,8 +94,8 @@ public class TaskTest extends Test {
         manager.saveTask(tasks.get(0));
         manager.saveTask(tasks.get(1));
 
-        Epic epic1 = saveSampleEpicWithSubtasks(manager, "epic 1", 2);
-        Epic epic2 = saveSampleEpicWithSubtasks(manager, "epic 2", 1);
+        Epic epic1 = saveEpicWithSubtasks(manager, "epic 1", 2);
+        Epic epic2 = saveEpicWithSubtasks(manager, "epic 2", 1);
 
         List<Subtask> subtasks1 = manager.getSubtasksByEpic(epic1);
         List<Subtask> subtasks2 = manager.getSubtasksByEpic(epic2);
@@ -175,9 +148,9 @@ public class TaskTest extends Test {
         TaskManager manager = new TaskManager();
 
         // Создаем 3 эпика, а сохраняем 2
-        Epic epic1 = createSampleEpic("epic 1", 2);
-        Epic epic2 = createSampleEpic("epic 2", 1);
-        Epic epic3 = createSampleEpic("epic 3", 0);
+        Epic epic1 = new Epic("e1", "d1");
+        Epic epic2 = new Epic("e2", "d2");
+        Epic epic3 = new Epic("e3", "d3");
 
         manager.saveEpic(epic1);
         manager.saveEpic(epic2);
@@ -192,9 +165,9 @@ public class TaskTest extends Test {
         TaskManager manager = new TaskManager();
 
         // создаем 3 эпика, а сохраняем 2
-        Epic epic1 = createSampleEpic("epic 1", 1);
-        Epic epic2 = createSampleEpic("epic 2", 2);
-        Epic epic3 = createSampleEpic("epic 2", 3);
+        Epic epic1 = new Epic("e1", "d1");
+        Epic epic2 = new Epic("e2", "d2");
+        Epic epic3 = new Epic("e3", "d3");
 
         manager.saveEpic(epic1);
         manager.saveEpic(epic2);
@@ -208,15 +181,12 @@ public class TaskTest extends Test {
 
         TaskManager manager = new TaskManager();
 
-        Epic epic1 = createSampleEpic("epic 1", 2);
-        Epic epic2 = createSampleEpic("epic 2", 1);
-
-        manager.saveEpic(epic1);
-        manager.saveEpic(epic2);
+        Epic epic1 = saveEpicWithSubtasks(manager, "e1", 2);
+        Epic epic2 = saveEpicWithSubtasks(manager, "e2", 1);
 
         List<Subtask> expectedSubtasks = new ArrayList<>();
-        expectedSubtasks.addAll(epic1.getSubtasks());
-        expectedSubtasks.addAll(epic2.getSubtasks());
+        expectedSubtasks.addAll(manager.getSubtasksByEpic(epic1));
+        expectedSubtasks.addAll(manager.getSubtasksByEpic(epic2));
 
         assertCollectionEquals(expectedSubtasks, manager.getSubtasks());
     }
@@ -226,8 +196,8 @@ public class TaskTest extends Test {
 
         TaskManager manager = new TaskManager();
 
-        Epic epic1 = saveSampleEpicWithSubtasks(manager, "эпик1", 2);
-        Epic epic2 = saveSampleEpicWithSubtasks(manager, "эпик2", 1);
+        Epic epic1 = saveEpicWithSubtasks(manager, "эпик1", 2);
+        Epic epic2 = saveEpicWithSubtasks(manager, "эпик2", 1);
 
         List<Subtask> subtasks1 = manager.getSubtasksByEpic(epic1);
         Subtask subtask11 = subtasks1.get(0);
@@ -241,14 +211,17 @@ public class TaskTest extends Test {
 
         TaskManager manager = new TaskManager();
 
-        Epic epic0 = createSampleEpic("e0", 2);
-        Epic epic1 = createSampleEpic("e1", 3);
+        Epic epic = new Epic("e", "d");
+        manager.saveEpic(epic);
 
-        manager.saveEpic(epic0);
-        manager.saveEpic(epic1);
+        Subtask subtask1 = new Subtask("s1", "d1", epic);
+        manager.saveSubtask(subtask1);
 
-        List<Subtask> actualSubtasks = manager.getSubtasksByEpic(epic0);
-        List<Subtask> expectedSubtasks = epic0.getSubtasks();
+        Subtask subtask2 = new Subtask("s2", "d2", epic);
+        manager.saveSubtask(subtask2);
+
+        List<Subtask> actualSubtasks = manager.getSubtasksByEpic(epic);
+        List<Subtask> expectedSubtasks = List.of(subtask1, subtask2);
 
         assertCollectionEquals(expectedSubtasks, actualSubtasks);
     }
@@ -295,12 +268,14 @@ public class TaskTest extends Test {
         manager.saveEpic(epic);
 
         Subtask subtask1 = new Subtask("s1", "old-s1", epic);
-        Subtask subtask2 = new Subtask("s2", "old-s2", epic);
         manager.saveSubtask(subtask1);
+
+        Subtask subtask2 = new Subtask("s2", "old-s2", epic);
         manager.saveSubtask(subtask2);
 
         int id = subtask2.getId();
 
+        // обновляем вторую подзадачу
         Subtask newSubtask = new Subtask(id, "n", "d", epic);
         manager.updateSubtask(newSubtask);
 
@@ -323,8 +298,9 @@ public class TaskTest extends Test {
         manager.saveEpic(epic);
 
         Subtask subtask1 = new Subtask("s1", "ds1", epic);
-        Subtask subtask2 = new Subtask("s2", "ds2", epic);
         manager.saveSubtask(subtask1);
+
+        Subtask subtask2 = new Subtask("s2", "ds2", epic);
         manager.saveSubtask(subtask2);
 
         // берем первую подзадачу в работу
@@ -384,11 +360,11 @@ public class TaskTest extends Test {
 
         TaskManager manager = new TaskManager();
 
-        Epic epic0 = createSampleEpic("epic0", 2);
-        Epic epic1 = createSampleEpic("epic1", 3);
+        Epic epic0 = saveEpicWithSubtasks(manager, "e1", 2);
+        Epic epic1 = saveEpicWithSubtasks(manager, "e2", 3);
 
-        manager.saveEpic(epic0);
-        manager.saveEpic(epic1);
+        List<Epic> epicsBeforeRemove = List.of(epic0, epic1);
+        assertCollectionEquals(epicsBeforeRemove, manager.getEpics());
 
         manager.removeEpics();
 
@@ -402,14 +378,11 @@ public class TaskTest extends Test {
 
         TaskManager manager = new TaskManager();
 
-        Epic epic0 = createSampleEpic("epic0", 2);
-        Epic epic1 = createSampleEpic("epic1", 3);
-
-        manager.saveEpic(epic0);
-        manager.saveEpic(epic1);
+        Epic epic0 = saveEpicWithSubtasks(manager, "e0", 2);
+        Epic epic1 = saveEpicWithSubtasks(manager, "e1", 3);
 
         // сохраняем подзадачи первого эпика перед удалением
-        List<Subtask> expectedSubtasks = List.copyOf(epic0.getSubtasks());
+        List<Subtask> expectedSubtasks = List.copyOf(manager.getSubtasksByEpic(epic0));
 
         // удаляем второй эпик
         manager.removeEpicById(epic1.getId());
@@ -427,10 +400,8 @@ public class TaskTest extends Test {
     public void testThatManagerRemoveAllSubtasks() {
         TaskManager manager = new TaskManager();
 
-        Epic epic0 = createSampleEpic("e0", 2);
-        Epic epic1 = createSampleEpic("e1", 3);
-        manager.saveEpic(epic0);
-        manager.saveEpic(epic1);
+        Epic epic0 = saveEpicWithSubtasks(manager, "e0", 2);
+        Epic epic1 = saveEpicWithSubtasks(manager, "e1", 3);
 
         manager.removeSubtasks();
 
@@ -445,7 +416,7 @@ public class TaskTest extends Test {
 
         TaskManager manager = new TaskManager();
 
-        Epic epic = saveSampleEpicWithSubtasks(manager,"epic1", 3);
+        Epic epic = saveEpicWithSubtasks(manager,"epic1", 3);
 
         List<Subtask> subtasks = manager.getSubtasksByEpic(epic);
         List<Subtask> expectedSubtasks = List.of(subtasks.get(0), subtasks.get(2));
@@ -480,7 +451,7 @@ public class TaskTest extends Test {
         Subtask subtask21 = new Subtask("s21", "ds21", TaskStatus.IN_PROGRESS, epic2);
         manager.saveSubtask(subtask21);
 
-
+        // удаляем единственную подзадачу эпика e1
         manager.removeSubtaskById(subtask11.getId());
 
         assertEquals(TaskStatus.NEW, epic1.getStatus(),
@@ -498,20 +469,7 @@ public class TaskTest extends Test {
         return tasks;
     }
 
-    private Epic createSampleEpic(String epicName, int subtaskCount) {
-
-        Epic epic = new Epic(epicName, "d" + epicName);
-
-        for (int i = 0; i < subtaskCount; i++) {
-            String subtaskName = epicName + ":s" + i;
-            String subtaskDesc = "ds" + i + " of " + epicName;
-            Subtask subtask = new Subtask(subtaskName, subtaskDesc, epic);
-            //epic.addSubtask(subtask);
-        }
-        return epic;
-    }
-
-    private Epic saveSampleEpicWithSubtasks(TaskManager manager, String epicName, int subtaskCount) {
+    private Epic saveEpicWithSubtasks(TaskManager manager, String epicName, int subtaskCount) {
 
         Epic epic = new Epic(epicName, "d" + epicName);
         manager.saveEpic(epic);

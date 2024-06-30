@@ -31,8 +31,6 @@ public class TaskManager {
         System.out.println("task created: " + task);
     }
 
-    // Подумать: нужно ли проверять, что статус у эпика соответствует статусам подзадач?
-    // Подумать: можно ли создать эпик/подзадачу сразу со статусом IN_PROGRESS/DONE?
     public void saveEpic(Epic epic) {
 
         if (epicRepo.get(epic.getId()) != null) {
@@ -44,9 +42,9 @@ public class TaskManager {
         epicRepo.put(epic.getId(), epic);
         System.out.println("epic created: " + epic);
 
-        for (Subtask subtask : epic.getSubtasks()) {
-            saveSubtask(subtask);
-        }
+//        for (Subtask subtask : epic.getSubtasks()) {
+//            saveSubtask(subtask);
+//        }
     }
 
     // Подумать: нужен ли публичный метод создания подзадачи, как будто ее можно создать без эпика?
