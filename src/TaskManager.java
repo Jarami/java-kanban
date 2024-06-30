@@ -56,7 +56,7 @@ public class TaskManager {
         subtaskRepo.put(subtask.getId(), subtask);
 
         // добавляем id подзадачи эпику
-        Epic epic = subtask.getEpic();
+        Epic epic = getEpicForSubtask(subtask);
         epic.addSubtaskId(subtask.getId());
         updateEpicStatus(epic);
 
@@ -96,6 +96,10 @@ public class TaskManager {
         return subtasks;
     }
 
+    public Epic getEpicForSubtask(Subtask subtask) {
+        return epicRepo.get(subtask.getEpicId());
+    }
+
     // Обновление
     public void updateTask(Task task) {
         if (task.getId() == null) {
@@ -117,7 +121,7 @@ public class TaskManager {
     // При обновлении подзадачи нужно обновить родительский эпик
     public void updateSubtask(Subtask subtask) {
         subtaskRepo.put(subtask.getId(), subtask);
-        updateEpicStatus(subtask.getEpic());
+        updateEpicStatus(getEpicForSubtask(subtask));
     }
 
     // Удаление
@@ -164,7 +168,7 @@ public class TaskManager {
 
         if (subtask != null) {
             subtaskRepo.remove(id);
-            Epic epic = subtask.getEpic();
+            Epic epic = getEpicForSubtask(subtask);
             epic.removeSubtaskId(subtask.getId());
             updateEpicStatus(epic);
         }

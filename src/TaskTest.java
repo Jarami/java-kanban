@@ -513,8 +513,8 @@ public class TaskTest extends Test {
 
         assertTaskEquals(expectedSubtask, actualSubtask);
 
-        assertEquals(expectedSubtask.getEpic(), actualSubtask.getEpic(),
-                String.format("эпик должен быть %s, а не %s", expectedSubtask.getEpic(), actualSubtask.getEpic()));
+        assertEquals(expectedSubtask.getEpicId(), actualSubtask.getEpicId(),
+                String.format("эпик должен быть %s, а не %s", expectedSubtask.getEpicId(), actualSubtask.getEpicId()));
     }
 
     private void assertEpicEquals(Epic expectedEpic, Epic actualEpic) {
