@@ -59,7 +59,7 @@ List<Subtask> subtasks = manager.getSubtasks();
 Subtask subtask = manager.getSubtaskById(subtaskId);
 
 // Получаем подзадачи эпика
-Subtask subtask = manager.getSubtasksOfEpic(epic);
+List<Subtask> subtasks = manager.getSubtasksOfEpic(epic);
 
 // Получаем эпик для подзадачи 
 Epic epic = manager.getEpicOfSubtask(subtask);
@@ -69,6 +69,7 @@ Epic epic = manager.getEpicOfSubtask(subtask);
 
 ```java
 // Предполагается, что мы заранее создали задачи, эпики и подзадачи
+// Новая задача перепишет старую с тем же идентификатором
 
 // Обновление задачи 
 updateTask(task);
@@ -103,6 +104,3 @@ removeSubtasks();
 // Удаление подзадачи по id 
 removeSubtaskById(subtaskId);
 ```
-
-## Логика изменения статуса эпика
-
