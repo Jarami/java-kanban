@@ -3,6 +3,7 @@ package test;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 public class Test {
 
@@ -15,7 +16,7 @@ public class Test {
     private int passed;
     private int failed;
     private int errors;
-    private ArrayList<String> messages;
+    private List<String> messages;
 
     public Test() {
         passed = 0;
@@ -32,8 +33,8 @@ public class Test {
         printTestSummary();
     }
 
-    protected ArrayList<Method> getTestMethods() {
-        ArrayList<Method> testMethods = new ArrayList<>();
+    protected List<Method> getTestMethods() {
+        List<Method> testMethods = new ArrayList<>();
         for (Method method : getClass().getMethods()) {
             if (method.getName().startsWith("test")) {
                 testMethods.add(method);

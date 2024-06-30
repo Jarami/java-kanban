@@ -323,7 +323,7 @@ public class TaskTest extends Test {
 
     // Проверить удаление всех обычных задач.
     public void testThatManagerRemoveAllTasks() {
-        ArrayList<Task> tasks = createSampleTasks(2);
+        List<Task> tasks = createSampleTasks(2);
 
         TaskManager manager = new TaskManager();
         manager.saveTask(tasks.get(0));
@@ -461,8 +461,8 @@ public class TaskTest extends Test {
                 String.format("статус второго эпика должен быть IN_PROGRESS, а не %s", epic2.getStatus()));
     }
 
-    private ArrayList<Task> createSampleTasks(int taskCount) {
-        ArrayList<Task> tasks = new ArrayList<>();
+    private List<Task> createSampleTasks(int taskCount) {
+        List<Task> tasks = new ArrayList<>();
         for (int i = 0; i < taskCount; i++) {
             tasks.add(new Task("t" + i, "dt" + i));
         }

@@ -19,48 +19,45 @@ public class TaskManager {
     }
 
     // Сохранение
-    public void saveTask(Task task) {
+    public int saveTask(Task task) {
 
-        if (taskRepo.get(task.getId()) != null) {
-            System.out.println("Такая задача уже существует!");
-            return;
-        }
+        int id = generateTaskId();
 
-        task.setId(generateTaskId());
-        taskRepo.put(task.getId(), task);
+        task.setId(id);
+        taskRepo.put(id, task);
 
         System.out.println("task created: " + task);
+
+        return id;
     }
 
-    public void saveEpic(Epic epic) {
+    public int saveEpic(Epic epic) {
 
-        if (epicRepo.get(epic.getId()) != null) {
-            System.out.println("Такой эпик уже существует!");
-            return;
-        }
+        int id = generateTaskId();
 
-        epic.setId(generateTaskId());
-        epicRepo.put(epic.getId(), epic);
+        epic.setId(id);
+        epicRepo.put(id, epic);
 
         System.out.println("epic created: " + epic);
+
+        return id;
     }
 
-    public void saveSubtask(Subtask subtask) {
+    public int saveSubtask(Subtask subtask) {
 
-        if (subtaskRepo.get(subtask.getId()) != null) {
-            System.out.println("Такая подзадача уже существует!");
-            return;
-        }
+        int id = generateTaskId();
 
-        subtask.setId(generateTaskId());
-        subtaskRepo.put(subtask.getId(), subtask);
+        subtask.setId(id);
+        subtaskRepo.put(id, subtask);
 
         // добавляем id подзадачи эпику
         Epic epic = getEpicOfSubtask(subtask);
-        epic.addSubtaskIdIfAbsent(subtask.getId());
+        epic.addSubtaskIdIfAbsent(id);
         updateEpicStatus(epic);
 
         System.out.println("subtask created: " + subtask);
+
+        return id;
     }
 
     // Получение
@@ -88,8 +85,8 @@ public class TaskManager {
         return subtaskRepo.get(id);
     }
 
-    public ArrayList<Subtask> getSubtasksOfEpic(Epic epic) {
-        ArrayList<Subtask> subtasks = new ArrayList<>();
+    public List<Subtask> getSubtasksOfEpic(Epic epic) {
+        List<Subtask> subtasks = new ArrayList<>();
         for (Integer subtaskId : epic.getSubtasksId()) {
             subtasks.add(subtaskRepo.get(subtaskId));
         }
