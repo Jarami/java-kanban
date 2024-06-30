@@ -28,6 +28,7 @@ public class TaskManager {
 
         task.setId(generateTaskId());
         taskRepo.put(task.getId(), task);
+
         System.out.println("task created: " + task);
     }
 
@@ -40,14 +41,10 @@ public class TaskManager {
 
         epic.setId(generateTaskId());
         epicRepo.put(epic.getId(), epic);
-        System.out.println("epic created: " + epic);
 
-//        for (Subtask subtask : epic.getSubtasks()) {
-//            saveSubtask(subtask);
-//        }
+        System.out.println("epic created: " + epic);
     }
 
-    // Подумать: нужен ли публичный метод создания подзадачи, как будто ее можно создать без эпика?
     public void saveSubtask(Subtask subtask) {
 
         if (subtaskRepo.get(subtask.getId()) != null) {
@@ -57,9 +54,12 @@ public class TaskManager {
 
         subtask.setId(generateTaskId());
         subtaskRepo.put(subtask.getId(), subtask);
-        if (subtask.getEpic() != null) {
-            subtask.getEpic().addSubtask(subtask);
-        }
+
+        // добавляем id подзадачи эпику
+        Epic epic = subtask.getEpic();
+        epic.addSubtaskId(subtask.getId());
+        updateEpicStatus(epic);
+
         System.out.println("subtask created: " + subtask);
     }
 
@@ -89,7 +89,11 @@ public class TaskManager {
     }
 
     public ArrayList<Subtask> getSubtasksByEpic(Epic epic) {
-        return epic.getSubtasks();
+        ArrayList<Subtask> subtasks = new ArrayList<>();
+        for (Integer subtaskId : epic.getSubtasksId()) {
+            subtasks.add(subtaskRepo.get(subtaskId));
+        }
+        return subtasks;
     }
 
     // Обновление
@@ -101,19 +105,19 @@ public class TaskManager {
         taskRepo.put(task.getId(), task);
     }
 
-    // Подумать: нужно ли проверять, что статус у эпика соответствует статусам подзадач?
     public void updateEpic(Epic epic) {
         if (epic.getId() == null) {
             System.out.println("Обновить можно только ранее сохраненный эпик");
             return;
         }
         epicRepo.put(epic.getId(), epic);
+        updateEpicStatus(epic);
     }
 
     // При обновлении подзадачи нужно обновить родительский эпик
     public void updateSubtask(Subtask subtask) {
         subtaskRepo.put(subtask.getId(), subtask);
-        subtask.getEpic().replaceSubtask(subtask);
+        updateEpicStatus(subtask.getEpic());
     }
 
     // Удаление
@@ -135,8 +139,8 @@ public class TaskManager {
         Epic epic = epicRepo.get(id);
 
         if (epic != null) {
-            for (Subtask subtask : epic.getSubtasks()) {
-                subtaskRepo.remove(subtask.getId());
+            for (Integer subtaskId : epic.getSubtasksId()) {
+                subtaskRepo.remove(subtaskId);
             }
             epicRepo.remove(id);
         }
@@ -144,11 +148,14 @@ public class TaskManager {
 
     // При удалении подзадач из хранилища также нужно удалить их у эпиков
     public void removeSubtasks() {
+
+        subtaskRepo.clear();
+
         for (Map.Entry<Integer, Epic> entry : epicRepo.entrySet()) {
             Epic epic = entry.getValue();
-            epic.removeSubtasks();
+            epic.removeSubtasksId();
+            updateEpicStatus(epic);
         }
-        subtaskRepo.clear();
     }
 
     // При удалении подзадачи нужно обновить родительский эпик
@@ -156,16 +163,17 @@ public class TaskManager {
         Subtask subtask = subtaskRepo.get(id);
 
         if (subtask != null) {
-            Epic epic = subtask.getEpic();
-            epic.removeSubtask(subtask);
             subtaskRepo.remove(id);
+            Epic epic = subtask.getEpic();
+            epic.removeSubtaskId(subtask.getId());
+            updateEpicStatus(epic);
         }
     }
 
 
     public void updateEpicStatus(Epic epic) {
         // обновляем статус
-        List<Subtask> subtasks = epic.getSubtasks();
+        List<Subtask> subtasks = getSubtasksByEpic(epic);
 
         if (subtasks.isEmpty() || areAllSubtasksNew(subtasks)) {
             epic.setStatus(TaskStatus.NEW);

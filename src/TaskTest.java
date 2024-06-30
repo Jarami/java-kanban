@@ -520,14 +520,9 @@ public class TaskTest extends Test {
     private void assertEpicEquals(Epic expectedEpic, Epic actualEpic) {
         assertTaskEquals(expectedEpic, actualEpic);
 
-        List<Subtask> expectedSubtasks = expectedEpic.getSubtasks();
-        List<Subtask> actualSubtasks = actualEpic.getSubtasks();
-        assertEquals(expectedSubtasks.size(), actualSubtasks.size(), String.format(
-                "количество подзадач должно быть %s, а не %s", expectedSubtasks.size(), actualSubtasks.size()));
-
-        for (int i = 0; i < expectedSubtasks.size(); i++) {
-            assertSubtaskEquals(expectedSubtasks.get(i), actualSubtasks.get(i));
-        }
+        List<Integer> expectedSubtasks = expectedEpic.getSubtasksId();
+        List<Integer> actualSubtasks = actualEpic.getSubtasksId();
+        assertCollectionEquals(expectedSubtasks, actualSubtasks);
     }
 
     private Subtask findSubtaskById(List<Subtask> subtasks, int id) {
