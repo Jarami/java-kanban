@@ -46,9 +46,9 @@ public class TaskTest extends Test {
         assertNull(task.getId(), "До сохранения у задачи не должен быть определен id");
         assertEquals(task.getStatus(), TaskStatus.NEW, "После создания у задачи должен быть статус NEW");
 
-        manager.saveTask(task);
+        int id = manager.saveTask(task);
 
-        assertNotNull(task.getId(), "После сохранения у задачи должен быть определен id");
+        assertEquals(id, task.getId(), "После сохранения у задачи должен быть определен id");
         assertEquals(task.getStatus(), TaskStatus.NEW, "После сохранения у задачи должен быть статус NEW");
     }
 
@@ -59,9 +59,9 @@ public class TaskTest extends Test {
         TaskManager manager = new TaskManager();
 
         Epic epic = new Epic("e", "d");
-        manager.saveEpic(epic);
+        int id = manager.saveEpic(epic);
 
-        assertNotNull(epic.getId(), "После сохранения у эпика должен быть определен id");
+        assertEquals(id, epic.getId(), "После сохранения у эпика должен быть определен id");
         assertEquals(epic.getStatus(), TaskStatus.NEW, "После сохранения у эпика должен быть статус NEW");
     }
 
@@ -79,9 +79,9 @@ public class TaskTest extends Test {
         assertNull(subtask.getId(), "До сохранения у подзадачи не должен быть определен id");
         assertEquals(subtask.getStatus(), TaskStatus.NEW, "После создания у подзадачи должен быть статус NEW");
 
-        manager.saveSubtask(subtask);
+        int id = manager.saveSubtask(subtask);
 
-        assertNotNull(subtask.getId(), "После сохранения у подзадачи должен быть определен id");
+        assertEquals(id, subtask.getId(), "После сохранения у подзадачи должен быть определен id");
         assertEquals(subtask.getStatus(), TaskStatus.NEW, "После сохранения у подзадачи должен быть статус NEW");
     }
 
