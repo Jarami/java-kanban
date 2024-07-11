@@ -14,9 +14,10 @@
 ## Сценарии использования
 
 ### Сохранение задач
+
 ```java
 // Инициализация менеджера
-TaskManager manager = new TaskManager();
+TaskManager manager = new InMemoryTaskManager();
 
 // Сохранение обычной задачи
 Task task = new Task("обычная скучная задача", "какое-то описание");
@@ -72,13 +73,13 @@ Epic epic = manager.getEpicOfSubtask(subtask);
 // Новая задача перепишет старую с тем же идентификатором
 
 // Обновление задачи 
-updateTask(task);
+manager.updateTask(task);
 
 // Обновление эпика 
-updateEpic(epic);
+manager.updateEpic(epic);
 
 // Обновление подзадачи 
-updateSubtask(subtask);
+manager.updateSubtask(subtask);
 ```
 
 ### Удаление задач
@@ -87,20 +88,20 @@ updateSubtask(subtask);
 // Предполагается, что мы заранее создали задачи, эпики и подзадачи
 
 // Удаление всех задач 
-removeTasks();
+manager.removeTasks();
 
 // Удаление задачи по id 
-removeTaskById(taskId);
+manager.removeTaskById(taskId);
 
 // Удаление всех эпиков 
-removeEpics();
+manager.removeEpics();
 
 // Удаление эпика по id
-removeEpicById(epicId);
+manager.removeEpicById(epicId);
 
 // Удаление всех подзадач 
-removeSubtasks();
+manager.removeSubtasks();
 
 // Удаление подзадачи по id 
-removeSubtaskById(subtaskId);
+manager.removeSubtaskById(subtaskId);
 ```
