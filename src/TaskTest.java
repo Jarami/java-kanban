@@ -17,7 +17,7 @@ public class TaskTest extends Test {
     // Проверить, что до просмотра задач история просмотров пуста
     public void testThatHistoryIsEmptyBeforeTaskWatching() {
 
-        TaskManager manager = new InMemoryTaskManager();
+        TaskManager manager = Managers.getDefault();
 
         Epic epic1 = new Epic("Эпик 1","Описание эпика 1");
         manager.saveEpic(epic1);
@@ -38,7 +38,7 @@ public class TaskTest extends Test {
     // Проверить, что после просмотра задач разного типа возвращается история просмотров в обратном порядке,
     // а от самых последних просмотренных до самых ранних.
     public void testThatManagerReturnsCorrectHistoryAfterTaskWatching() {
-        TaskManager manager = new InMemoryTaskManager();
+        TaskManager manager = Managers.getDefault();
 
         Epic epic1 = new Epic("Эпик 1","Описание эпика 1");
         manager.saveEpic(epic1);
@@ -60,7 +60,7 @@ public class TaskTest extends Test {
 
     // Проверить, что задачи, добавляемые в HistoryManager, сохраняют предыдущую версию задачи и её данных.
     public void testThatEvenAfterTaskUpdateHistoryHoldsOldStateOfTask() {
-        TaskManager manager = new InMemoryTaskManager();
+        TaskManager manager = Managers.getDefault();
 
         Task task1 = new Task("задача1", "Описание задачи1");
         Task task2 = new Task("задача2", "Описание задачи2");
@@ -149,7 +149,7 @@ public class TaskTest extends Test {
     // У нее появляется статус NEW и id (после сохранения).
     public void testThatManagerCreateTaskWithIdAndStatus() {
 
-        TaskManager manager = new InMemoryTaskManager();
+        TaskManager manager = Managers.getDefault();
 
         Task task = new Task("t", "dt");
         assertNull(task.getId(), "До сохранения у задачи не должен быть определен id");
@@ -174,7 +174,7 @@ public class TaskTest extends Test {
     // У него появляется статус NEW и id.
     public void testThatManagerCreateEpicWithIdAndStatus() {
 
-        TaskManager manager = new InMemoryTaskManager();
+        TaskManager manager = Managers.getDefault();
 
         Epic epic = new Epic("e", "d");
         int id = manager.saveEpic(epic);
@@ -205,7 +205,7 @@ public class TaskTest extends Test {
     // У нее появляется статус NEW и id (после сохранения)
     public void testThatManagerCreateSubtaskWithIdAndStatus() {
 
-        TaskManager manager = new InMemoryTaskManager();
+        TaskManager manager = Managers.getDefault();
 
         Epic epic = new Epic("эпик", "описание эпика");
         manager.saveEpic(epic);
@@ -224,7 +224,7 @@ public class TaskTest extends Test {
     // Проверить, что идентификаторы разных задач отличаются
     public void testThatDifferentTasksHaveDifferentId() {
 
-        TaskManager manager = new InMemoryTaskManager();
+        TaskManager manager = Managers.getDefault();
 
         List<Task> tasks = createSampleTasks(2);
         manager.saveTask(tasks.get(0));
@@ -256,7 +256,7 @@ public class TaskTest extends Test {
         // создаем 3 задачи, а сохраняем 2
         List<Task> tasks = createSampleTasks(3);
 
-        TaskManager manager = new InMemoryTaskManager();
+        TaskManager manager = Managers.getDefault();
         manager.saveTask(tasks.get(0));
         manager.saveTask(tasks.get(1));
 
@@ -267,7 +267,7 @@ public class TaskTest extends Test {
     // Проверить, что возвращается обычная задача по идентификатору
     public void testThatManagerReturnTaskById() {
 
-        TaskManager manager = new InMemoryTaskManager();
+        TaskManager manager = Managers.getDefault();
 
         // создаем 3 задачи, а сохраняем 2
         List<Task> tasks = createSampleTasks(3);
@@ -281,7 +281,7 @@ public class TaskTest extends Test {
     // Проверить, что возвращаются все эпики
     public void testThatManagerReturnAllEpics() {
 
-        TaskManager manager = new InMemoryTaskManager();
+        TaskManager manager = Managers.getDefault();
 
         // Создаем 3 эпика, а сохраняем 2
         Epic epic1 = new Epic("e1", "d1");
@@ -298,7 +298,7 @@ public class TaskTest extends Test {
     // Проверить получение эпика по идентификатору
     public void testThatManagerReturnEpicById() {
 
-        TaskManager manager = new InMemoryTaskManager();
+        TaskManager manager = Managers.getDefault();
 
         // создаем 3 эпика, а сохраняем 2
         Epic epic1 = new Epic("e1", "d1");
@@ -315,7 +315,7 @@ public class TaskTest extends Test {
     // Проверить, что возвращаются все подзадачи, даже если принадлежат разным эпикам
     public void testThatManagerReturnAllSubtasks() {
 
-        TaskManager manager = new InMemoryTaskManager();
+        TaskManager manager = Managers.getDefault();
 
         Epic epic1 = saveEpicWithSubtasks(manager, "e1", 2);
         Epic epic2 = saveEpicWithSubtasks(manager, "e2", 1);
@@ -330,7 +330,7 @@ public class TaskTest extends Test {
     // Проверить получение подзадач по идентификатору
     public void testThatManagerReturnSubtaskById() {
 
-        TaskManager manager = new InMemoryTaskManager();
+        TaskManager manager = Managers.getDefault();
 
         Epic epic1 = saveEpicWithSubtasks(manager, "эпик1", 2);
         Epic epic2 = saveEpicWithSubtasks(manager, "эпик2", 1);
@@ -345,7 +345,7 @@ public class TaskTest extends Test {
     // Проверить, что менеджер возвращает подзадачи эпика
     public void testThatManagerReturnsEpicSubtasks() {
 
-        TaskManager manager = new InMemoryTaskManager();
+        TaskManager manager = Managers.getDefault();
 
         Epic epic = new Epic("e", "d");
         manager.saveEpic(epic);
@@ -365,7 +365,7 @@ public class TaskTest extends Test {
     // Проверить, что обычная задача обновляется
     public void testThatManagerUpdateTask() {
 
-        TaskManager manager = new InMemoryTaskManager();
+        TaskManager manager = Managers.getDefault();
 
         Task task = new Task("t", "d");
         manager.saveTask(task);
@@ -381,7 +381,7 @@ public class TaskTest extends Test {
     // Проверить, что эпик обновляется
     public void testThatManagerUpdateEpic() {
 
-        TaskManager manager = new InMemoryTaskManager();
+        TaskManager manager = Managers.getDefault();
 
         Epic epic = new Epic("e", "d");
         manager.saveEpic(epic);
@@ -398,7 +398,7 @@ public class TaskTest extends Test {
     // У родительского эпика новая подзадача тоже должна присутствовать.
     public void testThatManagerUpdateSubtask() {
 
-        TaskManager manager = new InMemoryTaskManager();
+        TaskManager manager = Managers.getDefault();
 
         Epic epic = new Epic("e", "old-d");
         manager.saveEpic(epic);
@@ -427,7 +427,7 @@ public class TaskTest extends Test {
 
     // Проверить, что статус эпика обновляется после обновления его подзадачи.
     public void testThatEpicStatusUpdatedAfterSubtaskUpdate() {
-        TaskManager manager = new InMemoryTaskManager();
+        TaskManager manager = Managers.getDefault();
 
         // создаем эпик с подзадачами
         Epic epic = new Epic("e", "d");
@@ -461,7 +461,7 @@ public class TaskTest extends Test {
     public void testThatManagerRemoveAllTasks() {
         List<Task> tasks = createSampleTasks(2);
 
-        TaskManager manager = new InMemoryTaskManager();
+        TaskManager manager = Managers.getDefault();
         manager.saveTask(tasks.get(0));
         manager.saveTask(tasks.get(1));
 
@@ -472,7 +472,7 @@ public class TaskTest extends Test {
 
     // Проверить удаление обычной задачи по идентификатору.
     public void testThatManagerRemoveTaskById() {
-        TaskManager manager = new InMemoryTaskManager();
+        TaskManager manager = Managers.getDefault();
 
         List<Task> tasks = createSampleTasks(3);
         manager.saveTask(tasks.get(0));
@@ -494,7 +494,7 @@ public class TaskTest extends Test {
     // Все подзадачи также должны удалиться.
     public void testThatManagerRemoveAllEpics() {
 
-        TaskManager manager = new InMemoryTaskManager();
+        TaskManager manager = Managers.getDefault();
 
         Epic epic0 = saveEpicWithSubtasks(manager, "e1", 2);
         Epic epic1 = saveEpicWithSubtasks(manager, "e2", 3);
@@ -512,7 +512,7 @@ public class TaskTest extends Test {
     // Его подзадачи тоже должны удалиться.
     public void testThatManagerRemoveEpicById() {
 
-        TaskManager manager = new InMemoryTaskManager();
+        TaskManager manager = Managers.getDefault();
 
         Epic epic0 = saveEpicWithSubtasks(manager, "e0", 2);
         Epic epic1 = saveEpicWithSubtasks(manager, "e1", 3);
@@ -534,7 +534,7 @@ public class TaskTest extends Test {
     // Эпики не должны быть удалены, потому что они могут существовать без подзадач,
     // но все подзадачи у эпиков должны быть удалены
     public void testThatManagerRemoveAllSubtasks() {
-        TaskManager manager = new InMemoryTaskManager();
+        TaskManager manager = Managers.getDefault();
 
         Epic epic0 = saveEpicWithSubtasks(manager, "e0", 2);
         Epic epic1 = saveEpicWithSubtasks(manager, "e1", 3);
@@ -550,7 +550,7 @@ public class TaskTest extends Test {
     // После удаления подзадача не должна возвращаться из родительского эпика.
     public void testThatManagerRemoveSubtaskById() {
 
-        TaskManager manager = new InMemoryTaskManager();
+        TaskManager manager = Managers.getDefault();
 
         Epic epic = saveEpicWithSubtasks(manager,"epic1", 3);
 
@@ -571,7 +571,7 @@ public class TaskTest extends Test {
     // Должен стать NEW.
     public void testThatEpicStatusUpdatedAfterSubtaskRemoval() {
 
-        TaskManager manager = new InMemoryTaskManager();
+        TaskManager manager = Managers.getDefault();
 
         // У этого эпика статус DONE
         Epic epic1 = new Epic("e1", "de1");
@@ -599,7 +599,7 @@ public class TaskTest extends Test {
 
     // Проверить, что подзадача удаленного эпика не сохраняется
     public void testThatSavingSubtaskOfDeletedEpicIsIgnored() {
-        TaskManager manager = new InMemoryTaskManager();
+        TaskManager manager = Managers.getDefault();
 
         Epic epic = new Epic("epic", "desc");
         manager.saveEpic(epic);
@@ -614,7 +614,7 @@ public class TaskTest extends Test {
 
     // Проверить, что подзадача удаленного эпика не обновляется
     public void testThatUpdatingSubtaskOfDeletedEpicIsIgnored() {
-        TaskManager manager = new InMemoryTaskManager();
+        TaskManager manager = Managers.getDefault();
 
         Epic epic = new Epic("epic", "desc");
         manager.saveEpic(epic);
@@ -630,7 +630,7 @@ public class TaskTest extends Test {
 
     // Проверить, что удаление подзадачи удаленного эпика игнорируется
     public void testThatDeletingSubtaskOfDeletedEpicIsIgnored() {
-        TaskManager manager = new InMemoryTaskManager();
+        TaskManager manager = Managers.getDefault();
 
         Epic epic = new Epic("epic", "desc");
         manager.saveEpic(epic);
