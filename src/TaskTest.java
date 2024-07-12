@@ -1,4 +1,3 @@
-import java.lang.reflect.Method;
 import java.util.*;
 
 import test.Test;
@@ -35,8 +34,7 @@ public class TaskTest extends Test {
         assertEmpty(history, "история просмотров должна быть пустой");
     }
 
-    // Проверить, что после просмотра задач разного типа возвращается история просмотров в обратном порядке,
-    // а от самых последних просмотренных до самых ранних.
+    // Проверить, что после просмотра задач разного типа возвращается история просмотров
     public void testThatManagerReturnsCorrectHistoryAfterTaskWatching() {
         TaskManager manager = Managers.getDefault();
 
@@ -50,11 +48,27 @@ public class TaskTest extends Test {
         Task task = new Task("Обычная задача", "Описание обычной задачи");
         manager.saveTask(task);
 
-        watchTasks(manager, task, subtask1, epic1, subtask2);
+        List<Task> history;
+        List<Task> expectedHistory;
 
-        List<Task> history = manager.getHistory();
-        List<Task> expectedHistory = List.of(task, subtask1, epic1, subtask2);
+        manager.getTaskById(task.getId());
+        history = manager.getHistory();
+        expectedHistory = List.of(task);
+        assertCollectionEquals(expectedHistory, history);
 
+        manager.getSubtaskById(subtask1.getId());
+        history = manager.getHistory();
+        expectedHistory = List.of(task, subtask1);
+        assertCollectionEquals(expectedHistory, history);
+
+        manager.getEpicById(epic1.getId());
+        history = manager.getHistory();
+        expectedHistory = List.of(task, subtask1, epic1);
+        assertCollectionEquals(expectedHistory, history);
+
+        manager.getSubtaskById(subtask2.getId());
+        history = manager.getHistory();
+        expectedHistory = List.of(task, subtask1, epic1, subtask2);
         assertCollectionEquals(expectedHistory, history);
     }
 

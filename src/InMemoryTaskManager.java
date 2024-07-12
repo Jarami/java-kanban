@@ -2,47 +2,18 @@ import java.util.*;
 
 public class InMemoryTaskManager implements TaskManager {
 
-    static class History {
-        private int maxCapacity;
-        private final List<Task> tasks;
-
-        History(int maxCapacity) {
-            this.maxCapacity = maxCapacity;
-            tasks = new LinkedList<>();
-        }
-
-        void setMaxCapacity(int maxCapacity) {
-            this.maxCapacity = maxCapacity;
-        }
-
-        public synchronized void add(Task task) {
-            if (tasks.size() >= maxCapacity) {
-                tasks.removeFirst();
-            }
-            tasks.addLast(task);
-        }
-
-        public void clear() {
-            tasks.clear();
-        }
-
-        public List<Task> getTasks() {
-            return tasks;
-        }
-    }
-
     private static int taskCounter;
 
     private final HashMap<Integer, Task> taskRepo;
     private final HashMap<Integer, Epic> epicRepo;
     private final HashMap<Integer, Subtask> subtaskRepo;
-    private final History history;
+    private final HistoryManager historyManager;
 
     public InMemoryTaskManager() {
         taskRepo = new HashMap<>();
         epicRepo = new HashMap<>();
         subtaskRepo = new HashMap<>();
-        history = new History(10);
+        historyManager = Managers.getDefaultHistory();
     }
 
     private synchronized int generateTaskId() {
@@ -104,7 +75,7 @@ public class InMemoryTaskManager implements TaskManager {
     public Task getTaskById(int id) {
         Task task = taskRepo.get(id);
         if (task != null) {
-            history.add(task);
+            historyManager.add(task);
         }
         return task;
     }
@@ -116,7 +87,7 @@ public class InMemoryTaskManager implements TaskManager {
     public Epic getEpicById(int id) {
         Epic epic = epicRepo.get(id);
         if (epic != null) {
-            history.add(epic);
+            historyManager.add(epic);
         }
         return epic;
     }
@@ -128,7 +99,7 @@ public class InMemoryTaskManager implements TaskManager {
     public Subtask getSubtaskById(int id) {
         Subtask subtask = subtaskRepo.get(id);
         if (subtask != null) {
-            history.add(subtask);
+            historyManager.add(subtask);
         }
         return subtask;
     }
@@ -225,7 +196,7 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     public List<Task> getHistory() {
-        return history.getTasks();
+        return historyManager.getHistory();
     }
 
     private void updateEpicStatus(Epic epic) {
