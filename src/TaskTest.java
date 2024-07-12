@@ -1,6 +1,12 @@
 import java.util.*;
 
-import test.Test;
+import managers.InMemoryTaskManager;
+import managers.Managers;
+import managers.TaskManager;
+import tasks.Epic;
+import tasks.Subtask;
+import tasks.Task;
+import tasks.TaskStatus;
 
 public class TaskTest extends Test {
 
@@ -72,7 +78,7 @@ public class TaskTest extends Test {
         assertCollectionEquals(expectedHistory, history);
     }
 
-    // Проверить, что задачи, добавляемые в HistoryManager, сохраняют предыдущую версию задачи и её данных.
+    // Проверить, что задачи, добавляемые в managers.HistoryManager, сохраняют предыдущую версию задачи и её данных.
     public void testThatEvenAfterTaskUpdateHistoryHoldsOldStateOfTask() {
         TaskManager manager = Managers.getDefault();
 

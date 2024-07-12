@@ -16,7 +16,12 @@
 ### Сохранение задач
 
 ```java
-// Инициализация менеджера
+import managers.InMemoryTaskManager;
+import managers.TaskManager;
+import tasks.Epic;
+import tasks.Subtask;
+import tasks.Task;// Инициализация менеджера
+
 TaskManager manager = new InMemoryTaskManager();
 
 // Сохранение обычной задачи
@@ -41,7 +46,10 @@ int subtaskId2 = manager.saveSubtask(subtask2);
 ```java
 // Предполагается, что мы заранее создали задачи, эпики и подзадачи
 
-// Получаем все обычные задачи:
+import tasks.Epic;
+import tasks.Subtask;
+import tasks.Task;// Получаем все обычные задачи:
+
 List<Task> tasks = manager.getTasks();
 
 // Получаем обычную задачу по идентификатору

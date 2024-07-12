@@ -1,7 +1,10 @@
+package tasks;
+
 import static org.junit.jupiter.api.Assertions.*;
 import static lib.TestAssertions.assertEmpty;
 
-import lib.TestAssertions;
+import managers.Managers;
+import managers.TaskManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
