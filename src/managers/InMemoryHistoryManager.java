@@ -6,8 +6,15 @@ import java.util.LinkedList;
 import java.util.List;
 
 class InMemoryHistoryManager implements HistoryManager {
+
+    public static final int DEFAULT_MAX_CAPACITY = 10;
+
     private final int maxCapacity;
     private final List<Task> tasks;
+
+    InMemoryHistoryManager() {
+        this(DEFAULT_MAX_CAPACITY);
+    }
 
     InMemoryHistoryManager(int maxCapacity) {
         this.maxCapacity = maxCapacity;
