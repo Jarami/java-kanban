@@ -48,4 +48,6 @@ public interface TaskManager {
 
     // При удалении подзадачи нужно обновить родительский эпик
     void removeSubtaskById(int id);
+
+    List<Task> getHistory();
 }

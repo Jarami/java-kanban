@@ -1,5 +1,6 @@
 package test;
 
+import java.io.PrintStream;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -74,12 +75,14 @@ public class Test {
 
     protected void printTestSummary() {
 
-        System.out.println("================================================================");
+        PrintStream console = failed + errors > 0 ? System.err : System.out;
+
+        console.println("================================================================");
         for (String message : messages) {
-            System.out.println(message + '\n');
+            console.println(message + '\n');
         }
-        System.out.println("Выполнено тестов: " + (passed + failed) + ", провалов: " + failed + ", ошибок: " + errors);
-        System.out.println("================================================================");
+        console.println("Выполнено тестов: " + (passed + failed + errors) + ", провалов: " + failed + ", ошибок: " + errors);
+        console.println("================================================================");
     }
 
     public void assertEquals(Object o1, Object o2, String message) {

@@ -1,8 +1,102 @@
+import java.lang.reflect.Method;
 import java.util.*;
 
 import test.Test;
 
 public class TaskTest extends Test {
+
+//    protected List<Method> getTestMethods() {
+//        try {
+//            return List.of(getClass().getMethod("testThatManagerReturnsCorrectHistoryAfterTaskWatching"));
+//        } catch (NoSuchMethodException e) {
+//            e.printStackTrace();
+//            return List.of();
+//        }
+//    }
+
+    // Проверить, что до просмотра задач история просмотров пуста
+    public void testThatHistoryIsEmptyBeforeTaskWatching() {
+
+        TaskManager manager = new InMemoryTaskManager();
+
+        Epic epic1 = new Epic("Эпик 1","Описание эпика 1");
+        manager.saveEpic(epic1);
+
+        Subtask subtask1 = new Subtask("Подзадача 1 эпика 1", "Описание подзадачи 1 эпика 1", epic1);
+        manager.saveSubtask(subtask1);
+
+        Subtask subtask2 = new Subtask("Подзадача 2 эпика 1", "Описание подзадачи 2 эпика 1", epic1);
+        manager.saveSubtask(subtask2);
+
+        Task task = new Task("Обычная задача", "Описание обычной задачи");
+        manager.saveTask(task);
+
+        List<Task> history = manager.getHistory();
+        assertEmpty(history, "история просмотров должна быть пустой");
+    }
+
+    // Проверить, что после просмотра задач разного типа возвращается история просмотров в обратном порядке,
+    // а от самых последних просмотренных до самых ранних.
+    public void testThatManagerReturnsCorrectHistoryAfterTaskWatching() {
+        TaskManager manager = new InMemoryTaskManager();
+
+        Epic epic1 = new Epic("Эпик 1","Описание эпика 1");
+        manager.saveEpic(epic1);
+
+        Subtask subtask1 = new Subtask("Подзадача 1 эпика 1", "Описание подзадачи 1 эпика 1", epic1);
+        Subtask subtask2 = new Subtask("Подзадача 2 эпика 1", "Описание подзадачи 2 эпика 1", epic1);
+        saveTasks(manager, subtask1, subtask2);
+
+        Task task = new Task("Обычная задача", "Описание обычной задачи");
+        manager.saveTask(task);
+
+        watchTasks(manager, task, subtask1, epic1, subtask2);
+
+        List<Task> history = manager.getHistory();
+        List<Task> expectedHistory = List.of(task, subtask1, epic1, subtask2);
+
+        assertCollectionEquals(expectedHistory, history);
+    }
+
+    // Проверить, что задачи, добавляемые в HistoryManager, сохраняют предыдущую версию задачи и её данных.
+    public void testThatEvenAfterTaskUpdateHistoryHoldsOldStateOfTask() {
+        TaskManager manager = new InMemoryTaskManager();
+
+        Task task1 = new Task("задача1", "Описание задачи1");
+        Task task2 = new Task("задача2", "Описание задачи2");
+        Task task3 = new Task("задача3", "Описание задачи3");
+        saveTasks(manager, task1, task2, task3);
+
+        watchTasks(manager, task1, task2, task3);
+
+        // сохраняем старые значения
+        int taskId2 = task2.getId();
+        String oldName = task2.getName();
+        String oldDescription = task2.getDescription();
+        TaskStatus oldStatus = task2.getStatus();
+
+        // меняем task2
+        Task newTask2 = new Task(taskId2, "другая задача2", "описание другой задачи2", TaskStatus.DONE);
+        manager.updateTask(newTask2);
+
+        // смотрим ее
+        watchTasks(manager, newTask2);
+
+        List<Task> history = manager.getHistory();
+        Task oldTask2 = history.get(1);
+
+        assertEquals(oldStatus, oldTask2.getStatus(),
+                String.format("статус должен быть %s, а не %s", oldStatus, oldTask2.getStatus()));
+
+        assertEquals(oldName, oldTask2.getName(),
+                String.format("имя должно быть %s, а не %s", oldName, oldTask2.getName()));
+
+        assertEquals(oldDescription, oldTask2.getDescription(),
+                String.format("имя должно быть %s, а не %s", oldDescription, oldTask2.getDescription()));
+
+        assertEquals(taskId2, oldTask2.getId(),
+                String.format("id должно быть %s, а не %s", taskId2, oldTask2.getDescription()));
+    }
 
     public void testThatEpicStatusChangesAsSubtaskStatusChanges() {
         TaskManager taskManager = new InMemoryTaskManager();
@@ -36,6 +130,21 @@ public class TaskTest extends Test {
         assertEquals(TaskStatus.DONE, epic1.getStatus(), "должен быть статус DONE, а не " + epic1.getStatus());
     }
 
+    // Проверить, что эпик создается с разными параметрами
+    public void testThatTaskCanBeCreatedWithVariousParams() {
+        Task task1 = new Task("task1", "desc1");
+        assertNotNull(task1, "должна существовать задача 1");
+
+        Task task2 = new Task(2, "task2", "desc2");
+        assertNotNull(task2, "должна существовать задача 1");
+
+        Task task3 = new Task("task3", "desc3", TaskStatus.DONE);
+        assertNotNull(task2, "должна существовать задача 3");
+
+        Task task4 = new Task(4, "task4", "desc4", TaskStatus.IN_PROGRESS);
+        assertNotNull(task2, "должна существовать задача 4");
+    }
+
     // Проверить, что обычная задача создается.
     // У нее появляется статус NEW и id (после сохранения).
     public void testThatManagerCreateTaskWithIdAndStatus() {
@@ -52,6 +161,15 @@ public class TaskTest extends Test {
         assertEquals(task.getStatus(), TaskStatus.NEW, "После сохранения у задачи должен быть статус NEW");
     }
 
+    // Проверить, что эпик создается с разными параметрами
+    public void testThatEpicCanBeCreatedWithVariousParams() {
+        Epic epic1 = new Epic("epic1", "desc1");
+        assertNotNull(epic1, "должен существовать эпик 1");
+
+        Epic epic2 = new Epic(1, "epic2", "desc2");
+        assertNotNull(epic2, "должен существовать эпик 2");
+    }
+
     // Проверить, что эпик создается.
     // У него появляется статус NEW и id.
     public void testThatManagerCreateEpicWithIdAndStatus() {
@@ -63,6 +181,24 @@ public class TaskTest extends Test {
 
         assertEquals(id, epic.getId(), "После сохранения у эпика должен быть определен id");
         assertEquals(epic.getStatus(), TaskStatus.NEW, "После сохранения у эпика должен быть статус NEW");
+    }
+
+    // Проверить, что подзадача создается с разными параметрами
+    public void testThatSubtaskCanBeCreatedWithVariousParams() {
+
+        Epic epic = new Epic("epic", "desc");
+
+        Subtask sub1 = new Subtask("sub1", "desc1", epic);
+        assertNotNull(sub1, "должна существовать подзадача 1");
+
+        Subtask sub2 = new Subtask(1, "sub1", "desc1", epic);
+        assertNotNull(sub2, "должна существовать подзадача 2");
+
+        Subtask sub3 = new Subtask("sub1", "desc1", TaskStatus.DONE, epic);
+        assertNotNull(sub3, "должна существовать подзадача 3");
+
+        Subtask sub4 = new Subtask(2, "sub1", "desc1", TaskStatus.DONE, epic);
+        assertNotNull(sub4, "должна существовать подзадача 4");
     }
 
     // Проверить, что подзадача создается
@@ -461,6 +597,52 @@ public class TaskTest extends Test {
                 String.format("статус второго эпика должен быть IN_PROGRESS, а не %s", epic2.getStatus()));
     }
 
+    // Проверить, что подзадача удаленного эпика не сохраняется
+    public void testThatSavingSubtaskOfDeletedEpicIsIgnored() {
+        TaskManager manager = new InMemoryTaskManager();
+
+        Epic epic = new Epic("epic", "desc");
+        manager.saveEpic(epic);
+
+        Subtask subtask = new Subtask("sub1", "desc1", epic);
+        manager.removeEpics();
+
+        manager.saveSubtask(subtask);
+
+        assertEmpty(manager.getSubtasks(), "подзадач не должно существовать");
+    }
+
+    // Проверить, что подзадача удаленного эпика не обновляется
+    public void testThatUpdatingSubtaskOfDeletedEpicIsIgnored() {
+        TaskManager manager = new InMemoryTaskManager();
+
+        Epic epic = new Epic("epic", "desc");
+        manager.saveEpic(epic);
+
+        Subtask subtask = new Subtask("sub1", "desc1", epic);
+        manager.removeEpics();
+
+        Subtask newSubtask = new Subtask(subtask.getId(), "sub2", "desc2", epic);
+        manager.updateSubtask(newSubtask);
+
+        assertEmpty(manager.getSubtasks(), "подзадач не должно существовать");
+    }
+
+    // Проверить, что удаление подзадачи удаленного эпика игнорируется
+    public void testThatDeletingSubtaskOfDeletedEpicIsIgnored() {
+        TaskManager manager = new InMemoryTaskManager();
+
+        Epic epic = new Epic("epic", "desc");
+        manager.saveEpic(epic);
+
+        Subtask subtask = new Subtask("sub1", "desc1", epic);
+        manager.saveSubtask(subtask);
+        manager.removeEpics();
+
+        manager.removeSubtaskById(subtask.getId());
+        assertEmpty(manager.getSubtasks(), "подзадач не должно существовать");
+    }
+
     private List<Task> createSampleTasks(int taskCount) {
         List<Task> tasks = new ArrayList<>();
         for (int i = 0; i < taskCount; i++) {
@@ -532,6 +714,34 @@ public class TaskTest extends Test {
             }
         }
         return null;
+    }
+
+    private void watchTasks(TaskManager manager, Task ...tasks){
+        for (Task task : tasks) {
+            if (task instanceof Epic) {
+                manager.getEpicById(task.getId());
+            } else if (task instanceof Subtask) {
+                manager.getSubtaskById(task.getId());
+            } else {
+                manager.getTaskById(task.getId());
+            }
+        }
+    }
+
+    // С сохранением есть нюанс - эпики должны быть сохранены перед тем,
+    // как создавать (именно создавать, а не сохранять) подзадачи,
+    // потому что подзадачи запоминают не сам эпик, а его id. А id у эпика
+    // появляется только после сохранения.
+    private void saveTasks(TaskManager manager, Task ...tasks){
+        for (Task task : tasks) {
+            if (task instanceof Epic) {
+                manager.saveEpic((Epic)task);
+            } else if (task instanceof Subtask) {
+                manager.saveSubtask((Subtask)task);
+            } else {
+                manager.saveTask(task);
+            }
+        }
     }
 
 }

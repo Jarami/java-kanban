@@ -81,4 +81,8 @@ public class Task {
                 ", status=" + status +
                 '}';
     }
+
+    public Task clone(){
+        return new Task(id, name, description, status);
+    }
 }
