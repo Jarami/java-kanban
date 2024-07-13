@@ -16,21 +16,21 @@ public class Epic extends Task {
         this.subtasksId = new ArrayList<>();
     }
 
-    public void addSubtaskIdIfAbsent(Integer subtaskId) {
-        if (!subtasksId.contains(subtaskId)) {
-            subtasksId.add(subtaskId);
+    public void addSubtaskIdIfAbsent(Subtask subtask) {
+        if (!subtasksId.contains(subtask.getId())) {
+            subtasksId.add(subtask.getId());
         }
     }
 
     public List<Integer> getSubtasksId() {
-        return subtasksId;
+        return List.copyOf(subtasksId);
     }
 
-    public void removeSubtaskId(Integer subtaskId) {
-        subtasksId.remove(subtaskId);
+    public void removeSubtask(Subtask subtask) {
+        subtasksId.remove(subtask.getId());
     }
 
-    public void removeSubtasksId() {
+    public void removeSubtasks() {
         subtasksId.clear();
     }
 }

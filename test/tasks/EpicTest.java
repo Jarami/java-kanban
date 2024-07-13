@@ -27,14 +27,16 @@ class EpicTest {
     @DisplayName("Добавить подзадачу, если отсутствует")
     void addSubtaskIfAbsent() {
         // добавляем первую подзадачу
-        int subId1 = manager.saveSubtask(new Subtask("sub1", "desc1", epic));
-        epic.addSubtaskIdIfAbsent(subId1);
-        assertIterableEquals(List.of(subId1), epic.getSubtasksId());
+        Subtask sub1 = new Subtask("sub1", "desc1", epic);
+        manager.saveSubtask(sub1);
+        epic.addSubtaskIdIfAbsent(sub1);
+        assertIterableEquals(List.of(sub1), manager.getSubtasksOfEpic(epic));
 
         // добавляем вторую подзадачу
-        int subId2 = manager.saveSubtask(new Subtask("sub2", "desc2", epic));
-        epic.addSubtaskIdIfAbsent(subId2);
-        assertIterableEquals(List.of(subId1, subId2), epic.getSubtasksId());
+        Subtask sub2 = new Subtask("sub2", "desc2", epic);
+        manager.saveSubtask(sub2);
+        epic.addSubtaskIdIfAbsent(sub2);
+        assertIterableEquals(List.of(sub1, sub2), manager.getSubtasksOfEpic(epic));
 
     }
 
@@ -42,46 +44,58 @@ class EpicTest {
     @DisplayName("Не добавлять подзадачу, если присутствует")
     void doNotAddSubtaskIfPresent() {
         // добавляем первую подзадачу
-        int subId1 = manager.saveSubtask(new Subtask("sub1", "desc1", epic));
-        epic.addSubtaskIdIfAbsent(subId1);
+        Subtask sub1 = new Subtask("sub1", "desc1", epic);
+        manager.saveSubtask(sub1);
 
-        epic.addSubtaskIdIfAbsent(subId1);
-        assertIterableEquals(List.of(subId1), epic.getSubtasksId());
+        epic.addSubtaskIdIfAbsent(sub1);
+        epic.addSubtaskIdIfAbsent(sub1);
+
+        assertIterableEquals(List.of(sub1), manager.getSubtasksOfEpic(epic));
     }
 
     @Test
     @DisplayName("Удалить подзадачу, если присутствует")
     void removeSubtaskIdIfPresent() {
-        int subId1 = manager.saveSubtask(new Subtask("sub1", "desc1", epic));
-        epic.addSubtaskIdIfAbsent(subId1);
+        Subtask sub1 = new Subtask("sub1", "desc1", epic);
+        manager.saveSubtask(sub1);
+        epic.addSubtaskIdIfAbsent(sub1);
 
-        int subId2 = manager.saveSubtask(new Subtask("sub2", "desc2", epic));
-        epic.addSubtaskIdIfAbsent(subId2);
+        Subtask sub2 = new Subtask("sub2", "desc2", epic);
+        manager.saveSubtask(sub2);
+        epic.addSubtaskIdIfAbsent(sub2);
 
-        epic.removeSubtaskId(subId1);
-        assertIterableEquals(List.of(subId2), epic.getSubtasksId());
+        epic.removeSubtask(sub1);
+        assertIterableEquals(List.of(sub2), manager.getSubtasksOfEpic(epic));
     }
 
     @Test
-    @DisplayName("Игнорировать удаление подзадачи, если отсутствует")
-    void ignoreRemoveSubtaskIdIfAbsent() {
-        int subId1 = manager.saveSubtask(new Subtask("sub1", "desc1", epic));
-        epic.addSubtaskIdIfAbsent(subId1);
+    @DisplayName("Игнорировать удаление подзадачи, если отсутствует у эпика")
+    void ignoreRemoveSubtaskIfAbsent() {
+        Epic epic1 = new Epic("epic1", "desc1");
+        manager.saveEpic(epic1);
 
-        epic.removeSubtaskId(subId1 + 1);
-        assertIterableEquals(List.of(subId1), epic.getSubtasksId());
+        Epic epic2 = new Epic("epic1", "desc1");
+        manager.saveEpic(epic2);
+
+        Subtask sub = new Subtask("sub1", "desc1", epic1);
+        manager.saveSubtask(sub);
+
+        epic2.removeSubtask(sub);
+        assertEmpty(manager.getSubtasksOfEpic(epic2));
     }
 
     @Test
     @DisplayName("Удалить все подзадачи")
-    void removeSubtasksId() {
-        int subId1 = manager.saveSubtask(new Subtask("sub1", "desc1", epic));
-        epic.addSubtaskIdIfAbsent(subId1);
+    void removeSubtasks() {
+        Subtask sub1 = new Subtask("sub1", "desc1", epic);
+        manager.saveSubtask(sub1);
+        epic.addSubtaskIdIfAbsent(sub1);
 
-        int subId2 = manager.saveSubtask(new Subtask("sub2", "desc2", epic));
-        epic.addSubtaskIdIfAbsent(subId2);
+        Subtask sub2 = new Subtask("sub2", "desc2", epic);
+        manager.saveSubtask(sub2);
+        epic.addSubtaskIdIfAbsent(sub2);
 
-        epic.removeSubtasksId();
+        epic.removeSubtasks();
 
         assertEmpty(epic.getSubtasksId());
     }
@@ -94,4 +108,6 @@ class EpicTest {
         assertNull(epic.getId());
         assertEquals(TaskStatus.NEW, epic.getStatus());
     }
+
+
 }

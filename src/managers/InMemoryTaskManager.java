@@ -63,7 +63,7 @@ public class InMemoryTaskManager implements TaskManager {
             subtaskRepo.put(id, subtask);
 
             // добавляем id подзадачи эпику
-            epic.addSubtaskIdIfAbsent(id);
+            epic.addSubtaskIdIfAbsent(subtask);
             updateEpicStatus(epic);
 
             System.out.println("subtask created: " + subtask);
@@ -202,7 +202,7 @@ public class InMemoryTaskManager implements TaskManager {
 
         for (Map.Entry<Integer, Epic> entry : epicRepo.entrySet()) {
             Epic epic = entry.getValue();
-            epic.removeSubtasksId();
+            epic.removeSubtasks();
             updateEpicStatus(epic);
         }
     }
@@ -215,7 +215,7 @@ public class InMemoryTaskManager implements TaskManager {
             Epic epic = getEpicOfSubtask(subtask);
             if (epic != null) {
                 subtaskRepo.remove(id);
-                epic.removeSubtaskId(subtask.getId());
+                epic.removeSubtask(subtask);
                 updateEpicStatus(epic);
             }
         }

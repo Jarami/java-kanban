@@ -40,6 +40,20 @@ class InMemoryTaskManagerTest {
         }
 
         @Test
+        @DisplayName("обычная задача не изменяет имени и описания")
+        void testThatTaskDoesNotChangeNameAndDescAfterSaving() {
+            String name = "task";
+            String desc = "desc";
+            Task task = new Task(name, desc);
+            manager.saveTask(task);
+
+            Task actTask = manager.getTaskById(task.getId());
+
+            assertEquals(name, actTask.getName(), "После сохранения имя задачи не должно меняться");
+            assertEquals(desc, actTask.getDescription(), "После сохранения описание задачи не должно меняться");
+        }
+
+        @Test
         @DisplayName("эпик получает id и статус NEW")
         void testThatManagerSavesEpic() {
             Epic epic = new Epic("e", "d");
@@ -47,6 +61,20 @@ class InMemoryTaskManagerTest {
 
             assertEquals(id, epic.getId(), "После сохранения id должен быть определен");
             assertEquals(epic.getStatus(), NEW, "После сохранения должен остаться статус NEW");
+        }
+
+        @Test
+        @DisplayName("эпик не изменяет имени, описания")
+        void testThatEpicDoesNotChangeNameAndDescAfterSaving() {
+            String name = "epic";
+            String desc = "desc";
+            Epic epic = new Epic(name, desc);
+            manager.saveEpic(epic);
+
+            Epic actEpic = manager.getEpicById(epic.getId());
+
+            assertEquals(name, actEpic.getName(), "После сохранения имя задачи не должно меняться");
+            assertEquals(desc, actEpic.getDescription(), "После сохранения описание задачи не должно меняться");
         }
 
         @Test
@@ -61,6 +89,24 @@ class InMemoryTaskManagerTest {
 
             assertEquals(id, subtask.getId(), "После сохранения id должен быть определен");
             assertEquals(subtask.getStatus(), NEW, "После сохранения должен остаться статус NEW");
+        }
+
+        @Test
+        @DisplayName("подзадача не изменяет имени и описания")
+        void testThatSubtaskDoesNotChangeNameAndDescAfterSaving() {
+
+            Epic epic = new Epic("epic", "desc");
+            manager.saveEpic(epic);
+
+            String name = "sub";
+            String desc = "desc of sub";
+            Subtask sub = new Subtask(name, desc, epic);
+            manager.saveSubtask(sub);
+
+            Subtask actSub = manager.getSubtaskById(sub.getId());
+
+            assertEquals(name, actSub.getName(), "После сохранения имя подзадачи не должно меняться");
+            assertEquals(desc, actSub.getDescription(), "После сохранения описания подзадачи не должно меняться");
         }
 
         @Test
@@ -93,7 +139,7 @@ class InMemoryTaskManagerTest {
             manager.saveEpic(epic);
 
             Subtask sub1 = new Subtask("s1", "ds1", epic);
-            int id1 = manager.saveSubtask(sub1);
+            manager.saveSubtask(sub1);
 
             Subtask sub2 = new Subtask("s2", "ds2", epic);
             manager.saveSubtask(sub2);
