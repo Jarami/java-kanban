@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test;
 import tasks.Epic;
 import tasks.Subtask;
 import tasks.Task;
+import static lib.TestAssertions.*;
 
 import javax.naming.directory.AttributeInUseException;
 
@@ -67,5 +68,16 @@ class InMemoryHistoryManagerTest {
         List<Task> expectedTasks = tasks.subList(1, 11);
 
         assertIterableEquals(expectedTasks, actualTasks);
+    }
+
+    @Test
+    @DisplayName("Добавить три разных задачи")
+    void clearHistory() {
+        Task task = new Task("task", "task desc");
+        manager.add(task);
+
+        manager.clear();
+
+        assertEmpty(manager.getHistory());
     }
 }

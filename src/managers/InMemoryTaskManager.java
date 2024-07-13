@@ -145,6 +145,11 @@ public class InMemoryTaskManager implements TaskManager {
     // При обновлении подзадачи нужно обновить родительский эпик
     public void updateSubtask(Subtask subtask) {
 
+        if (subtask.getId() == null){
+            System.out.println("Изменить можно только сохраненную подзадачу");
+            return;
+        }
+
         Subtask oldSubtask = subtaskRepo.get(subtask.getId());
         if (oldSubtask == null) {
             System.out.println("Изменить можно только существующую подзадачу");
@@ -152,16 +157,7 @@ public class InMemoryTaskManager implements TaskManager {
         }
 
         Epic epic = getEpicOfSubtask(subtask);
-        if (epic == null) {
-            System.out.println("Не существует эпика для изменяемой подзадачи " + subtask);
-            return;
-        }
-
         Epic oldEpic = getEpicOfSubtask(oldSubtask);
-        if (oldEpic == null) {
-            System.out.println("Не существует эпика для подзадачи предыдущей версии " + oldSubtask);
-            return;
-        }
 
         if (!oldEpic.equals(epic)) {
             System.out.println("Подзадача не может изменить свой эпик! Предыдущий эпик " + oldEpic +

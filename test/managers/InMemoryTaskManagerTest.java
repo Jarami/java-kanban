@@ -293,6 +293,15 @@ class InMemoryTaskManagerTest {
         }
 
         @Test
+        @DisplayName("можно обновить только сохраненную задачу")
+        void testThatOnlySavedTaskCanBeUpdated() {
+            Task newTask = new Task("updated task", "updated desc");
+            manager.updateTask(newTask);
+
+            assertEmpty(manager.getTasks());
+        }
+
+        @Test
         @DisplayName("можно обновить только существующую задачу")
         void testThatOnlyExistingTaskCanBeUpdated() {
             Task newTask = new Task(1, "updated task", "updated desc");
@@ -332,6 +341,15 @@ class InMemoryTaskManagerTest {
         }
 
         @Test
+        @DisplayName("можно обновить только сохраненный эпик")
+        void testThatOnlySavedEpicCanBeUpdated() {
+            Epic epic = new Epic("updated epic", "updated epic");
+            manager.updateEpic(epic);
+
+            assertEmpty(manager.getEpics());
+        }
+
+        @Test
         @DisplayName("можно обновить только существующий эпик")
         void testThatOnlyExistingEpicCanBeUpdated() {
             Epic epic = new Epic(1, "updated epic", "updated epic");
@@ -360,6 +378,18 @@ class InMemoryTaskManagerTest {
 
             assertEquals(newSub.getStatus(), actSub.getStatus(), String.format(
                     "статус обновленного эпика должен быть %s, а не %s", newSub.getStatus(), actSub.getStatus()));
+        }
+
+        @Test
+        @DisplayName("можно обновить только сохраненную подзадачу")
+        void testThatOnlySavedSubtaskCanBeUpdated() {
+            Epic epic = new Epic("epic", "desc");
+            manager.saveEpic(epic);
+
+            Subtask sub = new Subtask("updated sub", "desc of updated sub", epic);
+            manager.updateSubtask(sub);
+
+            assertEmpty(manager.getSubtasks());
         }
 
         @Test
@@ -402,7 +432,7 @@ class InMemoryTaskManagerTest {
             manager.saveEpic(newEpic);
 
             Subtask newSub = new Subtask(sub.getId(), sub.getName(), sub.getDescription(), newEpic);
-            manager.updateSubtask(sub);
+            manager.updateSubtask(newSub);
 
             Subtask actSubtask = manager.getSubtaskById(sub.getId());
             Epic actEpic = manager.getEpicOfSubtask(actSubtask);
