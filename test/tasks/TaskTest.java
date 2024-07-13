@@ -5,6 +5,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 class TaskTest {
 
@@ -49,9 +50,16 @@ class TaskTest {
 
     @Test
     @DisplayName("Проверить, что задачи равны, если их id равны")
-    void testThatTasksAreEqualIfTheirIdEqual() {
+    void testThatTasksAreEqualIfTheirIdsEqual() {
         Task task1 = new Task(1, "task1", "desc1", TaskStatus.NEW);
         Task task2 = new Task(1, "task2", "desc2", TaskStatus.DONE);
         assertEquals(task1, task2);
+    }
+
+    @Test
+    @DisplayName("Проверить, что после создания у задачи нет id и статус NEW")
+    void testThatNewTaskHasNullIdAndNewStatus() {
+        assertNull(task.getId());
+        assertEquals(TaskStatus.NEW, task.getStatus());
     }
 }

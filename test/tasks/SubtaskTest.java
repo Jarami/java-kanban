@@ -37,4 +37,14 @@ class SubtaskTest {
 
         assertNull(sub.getEpicId());
     }
+
+    @Test
+    @DisplayName("Проверить, что после создания у подзадачи нет id и статус NEW")
+    void testThatNewTaskHasNullIdAndNewStatus() {
+        Epic epic = new Epic("epic", "desc");
+        Subtask sub = new Subtask("sub", "desc of sub", epic);
+
+        assertNull(sub.getId());
+        assertEquals(TaskStatus.NEW, sub.getStatus());
+    }
 }

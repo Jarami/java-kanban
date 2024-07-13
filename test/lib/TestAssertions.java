@@ -1,7 +1,13 @@
 package lib;
 
+import tasks.Epic;
+import tasks.Subtask;
+import tasks.Task;
+
 import java.util.Collection;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 public class TestAssertions {
     public static void assertEmpty(Collection<?> col) {

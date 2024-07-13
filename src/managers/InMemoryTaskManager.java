@@ -125,15 +125,16 @@ public class InMemoryTaskManager implements TaskManager {
 
     // Обновление
     public void updateTask(Task task) {
-        if (task.getId() == null) {
+        if (task.getId() == null || taskRepo.get(task.getId()) == null) {
             System.out.println("Обновить можно только ранее сохраненную задачу");
             return;
         }
+
         taskRepo.put(task.getId(), task);
     }
 
     public void updateEpic(Epic epic) {
-        if (epic.getId() == null) {
+        if (epic.getId() == null || epicRepo.get(epic.getId()) == null) {
             System.out.println("Обновить можно только ранее сохраненный эпик");
             return;
         }
@@ -143,11 +144,33 @@ public class InMemoryTaskManager implements TaskManager {
 
     // При обновлении подзадачи нужно обновить родительский эпик
     public void updateSubtask(Subtask subtask) {
-        Epic epic = getEpicOfSubtask(subtask);
-        if (epic != null) {
-            subtaskRepo.put(subtask.getId(), subtask);
-            updateEpicStatus(epic);
+
+        Subtask oldSubtask = subtaskRepo.get(subtask.getId());
+        if (oldSubtask == null) {
+            System.out.println("Изменить можно только существующую подзадачу");
+            return;
         }
+
+        Epic epic = getEpicOfSubtask(subtask);
+        if (epic == null) {
+            System.out.println("Не существует эпика для изменяемой подзадачи " + subtask);
+            return;
+        }
+
+        Epic oldEpic = getEpicOfSubtask(oldSubtask);
+        if (oldEpic == null) {
+            System.out.println("Не существует эпика для подзадачи предыдущей версии " + oldSubtask);
+            return;
+        }
+
+        if (!oldEpic.equals(epic)) {
+            System.out.println("Подзадача не может изменить свой эпик! Предыдущий эпик " + oldEpic +
+                    ", новый " + epic);
+            return;
+        }
+
+        subtaskRepo.put(subtask.getId(), subtask);
+        updateEpicStatus(epic);
     }
 
     // Удаление
