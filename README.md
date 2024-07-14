@@ -105,3 +105,16 @@ manager.removeSubtasks();
 // Удаление подзадачи по id 
 manager.removeSubtaskById(subtaskId);
 ```
+
+### Получение истории просмотров
+Просмотром считается вызов методов getTaskById, getEpicById или getSubtaskById. По умолчанию, в истории хранятся последние 10 просмотренных задач.
+
+```java
+// Предполагается, что мы заранее создали задачи, эпики и подзадачи
+manager.getTaskById(taskId);  
+manager.getEpicById(epicId); 
+manager.getSubtaskById(subtaskId);
+
+// сначала будет задача с taskId, потом эпик с epicId, а затем подзадача с subtaskId
+List<Task> history = manager.getHistory(); 
+```
