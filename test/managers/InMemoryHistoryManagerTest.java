@@ -8,8 +8,6 @@ import tasks.Subtask;
 import tasks.Task;
 import static lib.TestAssertions.*;
 
-import javax.naming.directory.AttributeInUseException;
-
 import java.util.ArrayList;
 import java.util.List;
 

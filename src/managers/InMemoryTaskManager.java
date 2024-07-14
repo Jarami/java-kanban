@@ -1,25 +1,28 @@
 package managers;
 
+import repo.InMemoryRepo;
+import repo.TaskRepo;
 import tasks.Epic;
 import tasks.Subtask;
 import tasks.Task;
 import tasks.TaskStatus;
 
-import java.util.*;
+import java.util.List;
+import java.util.ArrayList;
 
 public class InMemoryTaskManager implements TaskManager {
 
     private static int taskCounter;
 
-    private final HashMap<Integer, Task> taskRepo;
-    private final HashMap<Integer, Epic> epicRepo;
-    private final HashMap<Integer, Subtask> subtaskRepo;
+    private final TaskRepo<Task> taskRepo;
+    private final TaskRepo<Epic> epicRepo;
+    private final TaskRepo<Subtask> subtaskRepo;
     private final HistoryManager historyManager;
 
     public InMemoryTaskManager() {
-        taskRepo = new HashMap<>();
-        epicRepo = new HashMap<>();
-        subtaskRepo = new HashMap<>();
+        taskRepo = new InMemoryRepo<>();
+        epicRepo = new InMemoryRepo<>();
+        subtaskRepo = new InMemoryRepo<>();
         historyManager = Managers.getDefaultHistory();
     }
 
@@ -33,7 +36,7 @@ public class InMemoryTaskManager implements TaskManager {
         int id = generateTaskId();
 
         task.setId(id);
-        taskRepo.put(id, task);
+        taskRepo.save(task);
 
         System.out.println("task created: " + task);
 
@@ -45,7 +48,7 @@ public class InMemoryTaskManager implements TaskManager {
         int id = generateTaskId();
 
         epic.setId(id);
-        epicRepo.put(id, epic);
+        epicRepo.save(epic);
 
         System.out.println("epic created: " + epic);
 
@@ -60,7 +63,7 @@ public class InMemoryTaskManager implements TaskManager {
         if (epic != null) {
 
             subtask.setId(id);
-            subtaskRepo.put(id, subtask);
+            subtaskRepo.save(subtask);
 
             // добавляем id подзадачи эпику
             epic.addSubtaskIdIfAbsent(subtask);
@@ -76,11 +79,11 @@ public class InMemoryTaskManager implements TaskManager {
 
     // Получение
     public List<Task> getTasks() {
-        return List.copyOf(taskRepo.values());
+        return new ArrayList<>(taskRepo.findAll());
     }
 
     public Task getTaskById(int id) {
-        Task task = taskRepo.get(id);
+        Task task = taskRepo.findById(id);
         if (task != null) {
             historyManager.add(task);
         }
@@ -88,11 +91,11 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     public List<Epic> getEpics() {
-        return List.copyOf(epicRepo.values());
+        return new ArrayList<>(epicRepo.findAll());
     }
 
     public Epic getEpicById(int id) {
-        Epic epic = epicRepo.get(id);
+        Epic epic = epicRepo.findById(id);
         if (epic != null) {
             historyManager.add(epic);
         }
@@ -100,11 +103,11 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     public List<Subtask> getSubtasks() {
-        return List.copyOf(subtaskRepo.values());
+        return new ArrayList<>(subtaskRepo.findAll());
     }
 
     public Subtask getSubtaskById(int id) {
-        Subtask subtask = subtaskRepo.get(id);
+        Subtask subtask = subtaskRepo.findById(id);
         if (subtask != null) {
             historyManager.add(subtask);
         }
@@ -114,31 +117,31 @@ public class InMemoryTaskManager implements TaskManager {
     public List<Subtask> getSubtasksOfEpic(Epic epic) {
         List<Subtask> subtasks = new ArrayList<>();
         for (Integer subtaskId : epic.getSubtasksId()) {
-            subtasks.add(subtaskRepo.get(subtaskId));
+            subtasks.add(subtaskRepo.findById(subtaskId));
         }
         return subtasks;
     }
 
     public Epic getEpicOfSubtask(Subtask subtask) {
-        return epicRepo.get(subtask.getEpicId());
+        return epicRepo.findById(subtask.getEpicId());
     }
 
     // Обновление
     public void updateTask(Task task) {
-        if (task.getId() == null || taskRepo.get(task.getId()) == null) {
+        if (task.getId() == null || taskRepo.findById(task.getId()) == null) {
             System.out.println("Обновить можно только ранее сохраненную задачу");
             return;
         }
 
-        taskRepo.put(task.getId(), task);
+        taskRepo.save(task);
     }
 
     public void updateEpic(Epic epic) {
-        if (epic.getId() == null || epicRepo.get(epic.getId()) == null) {
+        if (epic.getId() == null || epicRepo.findById(epic.getId()) == null) {
             System.out.println("Обновить можно только ранее сохраненный эпик");
             return;
         }
-        epicRepo.put(epic.getId(), epic);
+        epicRepo.save(epic);
         updateEpicStatus(epic);
     }
 
@@ -150,7 +153,7 @@ public class InMemoryTaskManager implements TaskManager {
             return;
         }
 
-        Subtask oldSubtask = subtaskRepo.get(subtask.getId());
+        Subtask oldSubtask = subtaskRepo.findById(subtask.getId());
         if (oldSubtask == null) {
             System.out.println("Изменить можно только существующую подзадачу");
             return;
@@ -165,43 +168,42 @@ public class InMemoryTaskManager implements TaskManager {
             return;
         }
 
-        subtaskRepo.put(subtask.getId(), subtask);
+        subtaskRepo.save(subtask);
         updateEpicStatus(epic);
     }
 
     // Удаление
     public void removeTasks() {
-        taskRepo.clear();
+        taskRepo.delete();
     }
 
     public void removeTaskById(int id) {
-        taskRepo.remove(id);
+        taskRepo.deleteById(id);
     }
 
     public void removeEpics() {
-        subtaskRepo.clear();
-        epicRepo.clear();
+        subtaskRepo.delete();
+        epicRepo.delete();
     }
 
     // При удалении эпика все его подзадачи тоже удаляются
     public void removeEpicById(int id) {
-        Epic epic = epicRepo.get(id);
+        Epic epic = epicRepo.findById(id);
 
         if (epic != null) {
             for (Integer subtaskId : epic.getSubtasksId()) {
-                subtaskRepo.remove(subtaskId);
+                subtaskRepo.deleteById(subtaskId);
             }
-            epicRepo.remove(id);
+            epicRepo.deleteById(id);
         }
     }
 
     // При удалении подзадач из хранилища также нужно удалить их у эпиков
     public void removeSubtasks() {
 
-        subtaskRepo.clear();
+        subtaskRepo.delete();
 
-        for (Map.Entry<Integer, Epic> entry : epicRepo.entrySet()) {
-            Epic epic = entry.getValue();
+        for (Epic epic : epicRepo.findAll()) {
             epic.removeSubtasks();
             updateEpicStatus(epic);
         }
@@ -209,12 +211,12 @@ public class InMemoryTaskManager implements TaskManager {
 
     // При удалении подзадачи нужно обновить родительский эпик
     public void removeSubtaskById(int id) {
-        Subtask subtask = subtaskRepo.get(id);
+        Subtask subtask = subtaskRepo.findById(id);
 
         if (subtask != null) {
             Epic epic = getEpicOfSubtask(subtask);
             if (epic != null) {
-                subtaskRepo.remove(id);
+                subtaskRepo.deleteById(id);
                 epic.removeSubtask(subtask);
                 updateEpicStatus(epic);
             }
