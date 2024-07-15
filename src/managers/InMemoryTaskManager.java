@@ -31,6 +31,7 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     // Сохранение
+    @Override
     public int saveTask(Task task) {
 
         int id = generateTaskId();
@@ -43,6 +44,7 @@ public class InMemoryTaskManager implements TaskManager {
         return id;
     }
 
+    @Override
     public int saveEpic(Epic epic) {
 
         int id = generateTaskId();
@@ -55,6 +57,7 @@ public class InMemoryTaskManager implements TaskManager {
         return id;
     }
 
+    @Override
     public int saveSubtask(Subtask subtask) {
 
         int id = generateTaskId();
@@ -78,10 +81,12 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     // Получение
+    @Override
     public List<Task> getTasks() {
         return new ArrayList<>(taskRepo.findAll());
     }
 
+    @Override
     public Task getTaskById(int id) {
         Task task = taskRepo.findById(id);
         if (task != null) {
@@ -90,10 +95,12 @@ public class InMemoryTaskManager implements TaskManager {
         return task;
     }
 
+    @Override
     public List<Epic> getEpics() {
         return new ArrayList<>(epicRepo.findAll());
     }
 
+    @Override
     public Epic getEpicById(int id) {
         Epic epic = epicRepo.findById(id);
         if (epic != null) {
@@ -102,10 +109,12 @@ public class InMemoryTaskManager implements TaskManager {
         return epic;
     }
 
+    @Override
     public List<Subtask> getSubtasks() {
         return new ArrayList<>(subtaskRepo.findAll());
     }
 
+    @Override
     public Subtask getSubtaskById(int id) {
         Subtask subtask = subtaskRepo.findById(id);
         if (subtask != null) {
@@ -114,6 +123,7 @@ public class InMemoryTaskManager implements TaskManager {
         return subtask;
     }
 
+    @Override
     public List<Subtask> getSubtasksOfEpic(Epic epic) {
         List<Subtask> subtasks = new ArrayList<>();
         for (Integer subtaskId : epic.getSubtasksId()) {
@@ -122,11 +132,13 @@ public class InMemoryTaskManager implements TaskManager {
         return subtasks;
     }
 
+    @Override
     public Epic getEpicOfSubtask(Subtask subtask) {
         return epicRepo.findById(subtask.getEpicId());
     }
 
     // Обновление
+    @Override
     public void updateTask(Task task) {
         if (task.getId() == null || taskRepo.findById(task.getId()) == null) {
             System.out.println("Обновить можно только ранее сохраненную задачу");
@@ -136,6 +148,7 @@ public class InMemoryTaskManager implements TaskManager {
         taskRepo.save(task);
     }
 
+    @Override
     public void updateEpic(Epic epic) {
         if (epic.getId() == null || epicRepo.findById(epic.getId()) == null) {
             System.out.println("Обновить можно только ранее сохраненный эпик");
@@ -146,6 +159,7 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     // При обновлении подзадачи нужно обновить родительский эпик
+    @Override
     public void updateSubtask(Subtask subtask) {
 
         if (subtask.getId() == null){
@@ -173,20 +187,24 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     // Удаление
+    @Override
     public void removeTasks() {
         taskRepo.delete();
     }
 
+    @Override
     public void removeTaskById(int id) {
         taskRepo.deleteById(id);
     }
 
+    @Override
     public void removeEpics() {
         subtaskRepo.delete();
         epicRepo.delete();
     }
 
     // При удалении эпика все его подзадачи тоже удаляются
+    @Override
     public void removeEpicById(int id) {
         Epic epic = epicRepo.findById(id);
 
@@ -199,6 +217,7 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     // При удалении подзадач из хранилища также нужно удалить их у эпиков
+    @Override
     public void removeSubtasks() {
 
         subtaskRepo.delete();
@@ -210,6 +229,7 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     // При удалении подзадачи нужно обновить родительский эпик
+    @Override
     public void removeSubtaskById(int id) {
         Subtask subtask = subtaskRepo.findById(id);
 
@@ -223,6 +243,7 @@ public class InMemoryTaskManager implements TaskManager {
         }
     }
 
+    @Override
     public List<Task> getHistory() {
         return historyManager.getHistory();
     }

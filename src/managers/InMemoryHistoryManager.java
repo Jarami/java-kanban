@@ -21,6 +21,7 @@ class InMemoryHistoryManager implements HistoryManager {
         tasks = new LinkedList<>();
     }
 
+    @Override
     public synchronized void add(Task task) {
         if (tasks.size() >= maxCapacity) {
             tasks.removeFirst();
@@ -28,10 +29,12 @@ class InMemoryHistoryManager implements HistoryManager {
         tasks.addLast(task);
     }
 
+    @Override
     public void clear() {
         tasks.clear();
     }
 
+    @Override
     public List<Task> getHistory() {
         return tasks;
     }
