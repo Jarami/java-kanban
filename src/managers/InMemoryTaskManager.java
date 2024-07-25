@@ -6,6 +6,7 @@ import tasks.Epic;
 import tasks.Subtask;
 import tasks.Task;
 import tasks.TaskStatus;
+import static tasks.TaskStatus.*;
 
 import java.util.List;
 import java.util.ArrayList;
@@ -248,19 +249,24 @@ public class InMemoryTaskManager implements TaskManager {
         return historyManager.getHistory();
     }
 
-    private void updateEpicStatus(Epic epic) {
-        // обновляем статус
-        List<Subtask> subtasks = getSubtasksOfEpic(epic);
+    private TaskStatus getEpicStatus(List<Subtask> subtasks) {
 
-        if (subtasks.isEmpty() || areAllSubtasksNew(subtasks)) {
-            epic.setStatus(TaskStatus.NEW);
+        boolean areAllSubsNew = true;
+        boolean areAllSubsDone = true;
 
-        } else if (areAllSubtasksDone(subtasks)) {
-            epic.setStatus(TaskStatus.DONE);
-
-        } else {
-            epic.setStatus(TaskStatus.IN_PROGRESS);
+        for (Subtask sub : subtasks) {
+            if (!sub.getStatus().equals(NEW)) areAllSubsNew = false;
+            if (!sub.getStatus().equals(DONE)) areAllSubsDone = false;
         }
+
+        if (areAllSubsNew) return NEW;
+        if (areAllSubsDone) return DONE;
+        return IN_PROGRESS;
+    }
+
+    private void updateEpicStatus(Epic epic) {
+        List<Subtask> subtasks = getSubtasksOfEpic(epic);
+        epic.setStatus(getEpicStatus(subtasks));
     }
 
     private boolean areAllSubtasksNew(List<Subtask> subtasks) {

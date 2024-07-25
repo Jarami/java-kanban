@@ -827,6 +827,98 @@ class InMemoryTaskManagerTest {
         }
     }
 
+    @Nested
+    @DisplayName("При пересчете статуса эпика")
+    class WhenEpicStatusUpdate{
+
+        private Epic epic;
+
+        @BeforeEach
+        public void setup(){
+            epic = new Epic("epic", "desc");
+            manager.saveEpic(epic);
+        }
+
+        @Test
+        @DisplayName("Если список подзадач пуст, то статус NEW")
+        public void testThanStatusIsNewWhenSubtaskListIsEmpty() {
+            manager.updateEpic(epic);
+            assertEquals(NEW, epic.getStatus());
+        }
+
+        @Test
+        @DisplayName("Если все подзадачи NEW, то статус NEW")
+        public void testThanStatusIsNewWhenAllSubtasksAreNew() {
+
+            Subtask sub1 = new Subtask("sub1", "desc1", NEW, epic);
+            Subtask sub2 = new Subtask("sub2", "desc2", NEW, epic);
+            saveSubtasks(sub1, sub2);
+
+            manager.updateEpic(epic);
+            assertEquals(NEW, epic.getStatus());
+        }
+
+        @Test
+        @DisplayName("Если все подзадачи DONE, то статус DONE")
+        public void testThanStatusIsDoneWhenAllSubtasksAreDone() {
+
+            Subtask sub1 = new Subtask("sub1", "desc1", DONE, epic);
+            Subtask sub2 = new Subtask("sub2", "desc2", DONE, epic);
+            saveSubtasks(sub1, sub2);
+
+            manager.updateEpic(epic);
+            assertEquals(DONE, epic.getStatus());
+        }
+
+        @Test
+        @DisplayName("Если часть подзадач NEW, а часть DONE, то статус IN_PROGRESS")
+        public void testThanStatusIsInProgressWhenSubtasksAreNewAndDone() {
+
+            Subtask sub1 = new Subtask("sub1", "desc1", DONE, epic);
+            Subtask sub2 = new Subtask("sub2", "desc2", NEW, epic);
+            saveSubtasks(sub1, sub2);
+
+            manager.updateEpic(epic);
+            assertEquals(IN_PROGRESS, epic.getStatus());
+        }
+
+        @Test
+        @DisplayName("Если часть подзадач NEW, а часть IN_PROGRESS, то статус IN_PROGRESS")
+        public void testThanStatusIsInProgressWhenSubtasksAreNewAndInProgress() {
+
+            Subtask sub1 = new Subtask("sub1", "desc1", IN_PROGRESS, epic);
+            Subtask sub2 = new Subtask("sub2", "desc2", NEW, epic);
+            saveSubtasks(sub1, sub2);
+
+            manager.updateEpic(epic);
+            assertEquals(IN_PROGRESS, epic.getStatus());
+        }
+
+        @Test
+        @DisplayName("Если часть подзадач DONE, а часть IN_PROGRESS, то статус IN_PROGRESS")
+        public void testThanStatusIsInProgressWhenSubtasksAreDoneAndInProgress() {
+
+            Subtask sub1 = new Subtask("sub1", "desc1", IN_PROGRESS, epic);
+            Subtask sub2 = new Subtask("sub2", "desc2", DONE, epic);
+            saveSubtasks(sub1, sub2);
+
+            manager.updateEpic(epic);
+            assertEquals(IN_PROGRESS, epic.getStatus());
+        }
+
+        @Test
+        @DisplayName("Если часть подзадач NEW, часть DONE, а часть IN_PROGRESS, то статус IN_PROGRESS")
+        public void testThanStatusIsInProgressWhenSubtasksAreNewAndDoneAndInProgress() {
+
+            Subtask sub1 = new Subtask("sub1", "desc1", IN_PROGRESS, epic);
+            Subtask sub2 = new Subtask("sub2", "desc2", DONE, epic);
+            Subtask sub3 = new Subtask("sub3", "desc3", NEW, epic);
+            saveSubtasks(sub1, sub2, sub3);
+
+            manager.updateEpic(epic);
+            assertEquals(IN_PROGRESS, epic.getStatus());
+        }
+    }
     private Task createAndSaveTask(String name, String desc) {
         Task task = new Task(name, desc);
         manager.saveTask(task);
@@ -846,5 +938,9 @@ class InMemoryTaskManagerTest {
         return epic;
     }
 
-
+    private void saveSubtasks(Subtask... subtasks) {
+        for (Subtask subtask : subtasks) {
+            manager.saveSubtask(subtask);
+        }
+    }
 }
