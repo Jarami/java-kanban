@@ -10,6 +10,7 @@ import tasks.Task;
 import tasks.TaskStatus;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
@@ -640,11 +641,11 @@ class InMemoryTaskManagerTest {
             Task task = createAndSaveTask("Обычная задача", "Описание обычной задачи");
 
             List<Task> history;
-            List<Task> expectedHistory = new ArrayList<>();
+            List<Task> expectedHistory = new LinkedList<>();
 
             // смотрим обычную задачу
             manager.getTaskById(task.getId());
-            expectedHistory.add(task);
+            expectedHistory.addFirst(task);
 
             history = manager.getHistory();
 
@@ -653,7 +654,7 @@ class InMemoryTaskManagerTest {
 
             // смотрим первую подзадачу
             manager.getSubtaskById(subtask1.getId());
-            expectedHistory.add(subtask1);
+            expectedHistory.addFirst(subtask1);
 
             history = manager.getHistory();
 
@@ -662,7 +663,7 @@ class InMemoryTaskManagerTest {
 
             // смотрим эпик
             manager.getEpicById(epic.getId());
-            expectedHistory.add(epic);
+            expectedHistory.addFirst(epic);
 
             history = manager.getHistory();
 
@@ -673,7 +674,7 @@ class InMemoryTaskManagerTest {
             manager.getSubtaskById(subtask2.getId());
             history = manager.getHistory();
 
-            expectedHistory.add(subtask2);
+            expectedHistory.addFirst(subtask2);
 
             assertIterableEquals(expectedHistory, history, String.format(
                 "история должна быть %s, а не %s", expectedHistory, history));
@@ -723,8 +724,8 @@ class InMemoryTaskManagerTest {
 
             List<Task> actualHistory = manager.getHistory();
             assertEquals(2, actualHistory.size());
-            assertEquals(task2, actualHistory.get(0));
-            assertEquals(task1, actualHistory.get(1));
+            assertEquals(task1, actualHistory.get(0));
+            assertEquals(task2, actualHistory.get(1));
         }
 
         @Test

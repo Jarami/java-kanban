@@ -32,7 +32,7 @@ class InMemoryHistoryManagerTest {
         history.add(sub);
 
         List<Task> actualTasks = history.getHistory();
-        List<Task> expectedTasks = List.of(task, epic, sub);
+        List<Task> expectedTasks = List.of(sub, epic, task);
         assertIterableEquals(expectedTasks, actualTasks);
     }
 
@@ -43,11 +43,13 @@ class InMemoryHistoryManagerTest {
         List<Task> tasks = new ArrayList<>();
         for (int i = 0; i < 10; i++) {
             tasks.add(new Task(i,"task" + i, "desc of task " + i));
+        }
+
+        for (int i = 9; i >= 0; i--) {
             history.add(tasks.get(i));
         }
 
         List<Task> actualTasks = history.getHistory();
-
         assertIterableEquals(tasks, actualTasks);
     }
 
@@ -62,8 +64,8 @@ class InMemoryHistoryManagerTest {
         history.add(task3);
 
         List<Task> actualHistory = history.getHistory();
-        Task actualHistoryTask2 = actualHistory.get(0);
-        Task actualHistoryTask3 = actualHistory.get(1);
+        Task actualHistoryTask3 = actualHistory.get(0);
+        Task actualHistoryTask2 = actualHistory.get(1);
 
         assertEquals(2, actualHistory.size(),
             String.format("history size must be 2, not %s", actualHistory.size()));
@@ -125,6 +127,6 @@ class InMemoryHistoryManagerTest {
 
         history.remove(3);
 
-        assertIterableEquals(List.of(task1, task2), history.getHistory());
+        assertIterableEquals(List.of(task2, task1), history.getHistory());
     }
 }
