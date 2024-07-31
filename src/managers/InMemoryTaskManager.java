@@ -163,7 +163,7 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public void updateSubtask(Subtask subtask) {
 
-        if (subtask.getId() == null){
+        if (subtask.getId() == null) {
             System.out.println("Изменить можно только сохраненную подзадачу");
             return;
         }

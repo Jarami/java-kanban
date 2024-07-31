@@ -769,7 +769,7 @@ class InMemoryTaskManagerTest {
         private Epic epic;
 
         @BeforeEach
-        public void setup(){
+        public void setup() {
             epic = new Epic("epic", "desc");
             manager.saveEpic(epic);
         }
