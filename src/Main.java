@@ -20,7 +20,7 @@ public class Main {
         createTasks();
 
         // Запросите созданные задачи несколько раз в разном порядке.
-        for(int i = 0; i < 1000; i++) {
+        for (int i = 0; i < 1000; i++) {
             Task randomTask = getRandomTask();
             watch(randomTask);
             // После каждого запроса выведите историю и убедитесь, что в ней нет повторов.
@@ -56,7 +56,7 @@ public class Main {
         tasks.add(epic);
 
         if (subtaskCount > 0) {
-            for(int i = 0; i < subtaskCount; i++) {
+            for (int i = 0; i < subtaskCount; i++) {
                 Subtask sub = new Subtask("sub " + i + " of " + name, "sub " + i + " desc of " + name,
                         epic);
                 manager.saveSubtask(sub);
@@ -91,12 +91,12 @@ public class Main {
 
     private static String getFailUniquenessMessage(List<Task> history) {
         Map<Task, Integer> historyStat = new HashMap<>();
-        for(Task task : history) {
+        for (Task task : history) {
             int count = historyStat.getOrDefault(task, 0);
             historyStat.put(task, count + 1);
         }
         Set<Integer> doubles = new HashSet<>();
-        for(Map.Entry<Task, Integer> entry : historyStat.entrySet()) {
+        for (Map.Entry<Task, Integer> entry : historyStat.entrySet()) {
             if (entry.getValue() > 1) {
                 doubles.add(entry.getKey().getId());
             }
@@ -107,7 +107,7 @@ public class Main {
 
     private static void printWatchingStat() {
         System.out.println("======== WATCHING STATS ===============");
-        for(Map.Entry<Task, Integer> entry : watchingStat.entrySet()) {
+        for (Map.Entry<Task, Integer> entry : watchingStat.entrySet()) {
             System.out.println("task \"" + entry.getKey().getName() + "\" has been watched " + entry.getValue() +
                     " times");
         }
