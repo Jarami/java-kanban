@@ -8,31 +8,30 @@ import tasks.Subtask;
 import tasks.Task;
 import static lib.TestAssertions.*;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 class InMemoryHistoryManagerTest {
 
-    HistoryManager manager;
+    HistoryManager history;
 
     @BeforeEach
     void setup() {
-        manager = Managers.getDefaultHistory();
+        history = Managers.getDefaultHistory();
     }
 
     @Test
     @DisplayName("Добавить три разных задачи")
     void addDifferentTasks() {
         Task task = new Task("task", "task desc");
-        manager.add(task);
+        history.add(task);
         Epic epic = new Epic("epic", "epic desc");
-        manager.add(epic);
+        history.add(epic);
         Subtask sub = new Subtask("sub", "sub desc", epic);
-        manager.add(sub);
+        history.add(sub);
 
-        List<Task> actualTasks = manager.getHistory();
+        List<Task> actualTasks = history.getHistory();
         List<Task> expectedTasks = List.of(task, epic, sub);
         assertIterableEquals(expectedTasks, actualTasks);
     }
@@ -44,10 +43,10 @@ class InMemoryHistoryManagerTest {
         List<Task> tasks = new ArrayList<>();
         for (int i = 0; i < 10; i++) {
             tasks.add(new Task("task" + i, "desc of task " + i));
-            manager.add(tasks.get(i));
+            history.add(tasks.get(i));
         }
 
-        List<Task> actualTasks = manager.getHistory();
+        List<Task> actualTasks = history.getHistory();
 
         assertIterableEquals(tasks, actualTasks);
     }
@@ -59,10 +58,10 @@ class InMemoryHistoryManagerTest {
         List<Task> tasks = new ArrayList<>();
         for (int i = 0; i < 11; i++) {
             tasks.add(new Task("task" + i, "desc of task " + i));
-            manager.add(tasks.get(i));
+            history.add(tasks.get(i));
         }
 
-        List<Task> actualTasks = manager.getHistory();
+        List<Task> actualTasks = history.getHistory();
         List<Task> expectedTasks = tasks.subList(1, 11);
 
         assertIterableEquals(expectedTasks, actualTasks);
@@ -72,10 +71,10 @@ class InMemoryHistoryManagerTest {
     @DisplayName("Добавить три разных задачи")
     void clearHistory() {
         Task task = new Task("task", "task desc");
-        manager.add(task);
+        history.add(task);
 
-        manager.clear();
+        history.clear();
 
-        assertEmpty(manager.getHistory());
+        assertEmpty(history.getHistory());
     }
 }
