@@ -77,4 +77,59 @@ class InMemoryHistoryManagerTest {
 
         assertEmpty(history.getHistory());
     }
+
+    @Test
+    @DisplayName("Удалить существующую задачу из истории")
+    void removeTaskById() {
+        Task task1 = new Task(1, "task1", "desc1");
+        Task task2 = new Task(2, "task2", "desc2");
+        history.add(task1);
+        history.add(task2);
+
+        history.remove(1);
+
+        assertIterableEquals(List.of(task2), history.getHistory());
+    }
+
+    @Test
+    @DisplayName("Удалить существующую задачу из истории")
+    void givenExistingTask_whenRemove_thenGotTaskRemoved() {
+        Task task1 = new Task(1, "task1", "desc1");
+        Task task2 = new Task(2, "task2", "desc2");
+        history.add(task1);
+        history.add(task2);
+
+        history.remove(1);
+
+        assertIterableEquals(List.of(task2), history.getHistory());
+    }
+
+
+    @Test
+    @DisplayName("Удалить несколько экземпляров существующей задачи")
+    void givenManyTaskWithSameId_whenRemove_thenGotAllRemoved() {
+        Task task1 = new Task(1, "task1", "desc1");
+        Task task2 = new Task(2, "task2", "desc2");
+        Task task3 = new Task(1, "task3", "desc3");
+        history.add(task1);
+        history.add(task2);
+        history.add(task3);
+
+        history.remove(1);
+
+        assertIterableEquals(List.of(task2), history.getHistory());
+    }
+
+    @Test
+    @DisplayName("Удалить несуществующую задачу из истории")
+    void givenNonExistingTask_whenRemove_thenNothingHappens() {
+        Task task1 = new Task(1, "task1", "desc1");
+        Task task2 = new Task(2, "task2", "desc2");
+        history.add(task1);
+        history.add(task2);
+
+        history.remove(3);
+
+        assertIterableEquals(List.of(task1, task2), history.getHistory());
+    }
 }
