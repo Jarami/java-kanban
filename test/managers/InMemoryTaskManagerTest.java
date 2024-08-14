@@ -10,10 +10,9 @@ import tasks.Task;
 import tasks.TaskStatus;
 
 import java.util.ArrayList;
-import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static lib.TestAssertions.*;
@@ -642,11 +641,11 @@ class InMemoryTaskManagerTest {
             Task task = createAndSaveTask("Обычная задача", "Описание обычной задачи");
 
             List<Task> history;
-            List<Task> expectedHistory = new ArrayList<>();
+            List<Task> expectedHistory = new LinkedList<>();
 
             // смотрим обычную задачу
             manager.getTaskById(task.getId());
-            expectedHistory.add(task);
+            expectedHistory.addFirst(task);
 
             history = manager.getHistory();
 
@@ -655,7 +654,7 @@ class InMemoryTaskManagerTest {
 
             // смотрим первую подзадачу
             manager.getSubtaskById(subtask1.getId());
-            expectedHistory.add(subtask1);
+            expectedHistory.addFirst(subtask1);
 
             history = manager.getHistory();
 
@@ -664,7 +663,7 @@ class InMemoryTaskManagerTest {
 
             // смотрим эпик
             manager.getEpicById(epic.getId());
-            expectedHistory.add(epic);
+            expectedHistory.addFirst(epic);
 
             history = manager.getHistory();
 
@@ -675,7 +674,7 @@ class InMemoryTaskManagerTest {
             manager.getSubtaskById(subtask2.getId());
             history = manager.getHistory();
 
-            expectedHistory.add(subtask2);
+            expectedHistory.addFirst(subtask2);
 
             assertIterableEquals(expectedHistory, history, String.format(
                 "история должна быть %s, а не %s", expectedHistory, history));
@@ -698,7 +697,7 @@ class InMemoryTaskManagerTest {
             Task newTask = new Task(id, "new task", "new desc", TaskStatus.DONE);
             manager.updateTask(newTask);
 
-            Task historyTask = manager.getHistory().get(0);
+            Task historyTask = manager.getHistory().getFirst();
 
             assertEquals(oldStatus, historyTask.getStatus(),
                     String.format("статус должен быть %s, а не %s", oldStatus, historyTask.getStatus()));
@@ -712,6 +711,56 @@ class InMemoryTaskManagerTest {
             assertEquals(id, historyTask.getId(),
                     String.format("id должно быть %s, а не %s", id, historyTask.getDescription()));
         }
+
+        @Test
+        @DisplayName("При просмотре одной и той же задачи, в истории сохраняется только последний просмотр")
+        public void givenTaskManyTimesWatched_whenGetHistory_thenGotTheLastWatch() {
+            Task task1 = createAndSaveTask("task1", "desc1");
+            Task task2 = createAndSaveTask("task2", "desc2");
+
+            manager.getTaskById(task1.getId());
+            manager.getTaskById(task2.getId());
+            manager.getTaskById(task1.getId());
+
+            List<Task> actualHistory = manager.getHistory();
+            assertEquals(2, actualHistory.size());
+            assertEquals(task1, actualHistory.get(0));
+            assertEquals(task2, actualHistory.get(1));
+        }
+
+        @Test
+        @DisplayName("При удалении задачи, она больше не возвращается в истории")
+        public void givenTaskDeleted_whenGetHistory_thenGotNoTask() {
+            Task task = createAndSaveTask();
+            Epic epic = createAndSaveEpic();
+            Subtask sub = createAndSaveSubtask(epic);
+
+            manager.getTaskById(task.getId());
+            manager.getEpicById(epic.getId());
+            manager.getSubtaskById(sub.getId());
+            manager.removeTaskById(task.getId());
+            manager.removeSubtaskById(sub.getId());
+            manager.removeEpicById(epic.getId());
+
+            assertEmpty(manager.getHistory());
+        }
+
+        @Test
+        @DisplayName("При удалении всех задач история пуста")
+        public void givenAllTaskDeleted_whenGetHistory_thenGotNothing() {
+            Task task = createAndSaveTask();
+            Epic epic = createAndSaveEpic();
+            Subtask sub = createAndSaveSubtask(epic);
+
+            manager.getTaskById(task.getId());
+            manager.getEpicById(epic.getId());
+            manager.getSubtaskById(sub.getId());
+            manager.removeTasks();
+            manager.removeSubtasks();
+            manager.removeEpics();
+
+            assertEmpty(manager.getHistory());
+        }
     }
 
     @Nested
@@ -721,7 +770,7 @@ class InMemoryTaskManagerTest {
         private Epic epic;
 
         @BeforeEach
-        public void setup(){
+        public void setup() {
             epic = new Epic("epic", "desc");
             manager.saveEpic(epic);
         }
@@ -832,13 +881,13 @@ class InMemoryTaskManagerTest {
     }
 
     private Subtask createAndSaveSubtask(Epic epic) {
-        Subtask sub = new Subtask("sub", "descr of sub", epic);
+        Subtask sub = new Subtask("sub", "desc of sub", epic);
         manager.saveSubtask(sub);
         return sub;
     }
 
     private Subtask createAndSaveSubtask(TaskStatus status, Epic epic) {
-        Subtask sub = new Subtask("sub", "descr of sub", status, epic);
+        Subtask sub = new Subtask("sub", "desc of sub", status, epic);
         manager.saveSubtask(sub);
         return sub;
     }

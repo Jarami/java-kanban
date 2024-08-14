@@ -24,15 +24,15 @@ class InMemoryHistoryManagerTest {
     @Test
     @DisplayName("Добавить три разных задачи")
     void addDifferentTasks() {
-        Task task = new Task("task", "task desc");
+        Task task = new Task(1, "task", "task desc");
         history.add(task);
-        Epic epic = new Epic("epic", "epic desc");
+        Epic epic = new Epic(2, "epic", "epic desc");
         history.add(epic);
-        Subtask sub = new Subtask("sub", "sub desc", epic);
+        Subtask sub = new Subtask(3, "sub", "sub desc", epic);
         history.add(sub);
 
         List<Task> actualTasks = history.getHistory();
-        List<Task> expectedTasks = List.of(task, epic, sub);
+        List<Task> expectedTasks = List.of(sub, epic, task);
         assertIterableEquals(expectedTasks, actualTasks);
     }
 
@@ -42,39 +42,91 @@ class InMemoryHistoryManagerTest {
 
         List<Task> tasks = new ArrayList<>();
         for (int i = 0; i < 10; i++) {
-            tasks.add(new Task("task" + i, "desc of task " + i));
+            tasks.add(new Task(i,"task" + i, "desc of task " + i));
+        }
+
+        for (int i = 9; i >= 0; i--) {
             history.add(tasks.get(i));
         }
 
         List<Task> actualTasks = history.getHistory();
-
         assertIterableEquals(tasks, actualTasks);
     }
 
     @Test
-    @DisplayName("Добавить одиннадцать задач")
-    void testThatElevenTasksCannotBeAdded() {
+    @DisplayName("Добавить несколько экземпляров существующей задачи")
+    void givenManyTaskWithSameId_whenGetHistory_thenGotLatestTask() {
+        Task task1 = new Task(1, "task1", "desc1");
+        Task task2 = new Task(2, "task2", "desc2");
+        Task task3 = new Task(1, "task3", "desc3");
+        history.add(task1);
+        history.add(task2);
+        history.add(task3);
 
-        List<Task> tasks = new ArrayList<>();
-        for (int i = 0; i < 11; i++) {
-            tasks.add(new Task("task" + i, "desc of task " + i));
-            history.add(tasks.get(i));
-        }
+        List<Task> actualHistory = history.getHistory();
+        Task actualHistoryTask3 = actualHistory.get(0);
+        Task actualHistoryTask2 = actualHistory.get(1);
 
-        List<Task> actualTasks = history.getHistory();
-        List<Task> expectedTasks = tasks.subList(1, 11);
+        assertEquals(2, actualHistory.size(),
+            String.format("history size must be 2, not %s", actualHistory.size()));
 
-        assertIterableEquals(expectedTasks, actualTasks);
+        assertEquals("task2", actualHistoryTask2.getName(),
+            String.format("task2 name must be task2, not %s", actualHistoryTask2.getName()));
+
+        assertEquals("task3", actualHistoryTask3.getName(),
+            String.format("task3 name must be task3, not %s", actualHistoryTask3.getName()));
     }
 
     @Test
-    @DisplayName("Добавить три разных задачи")
+    @DisplayName("Очистить историю")
     void clearHistory() {
-        Task task = new Task("task", "task desc");
+        Task task = new Task(1, "task", "task desc");
         history.add(task);
 
         history.clear();
 
         assertEmpty(history.getHistory());
+    }
+
+    @Test
+    @DisplayName("Удалить существующую задачу из истории")
+    void givenExistingTask_whenRemove_thenGotTaskRemoved() {
+        Task task1 = new Task(1, "task1", "desc1");
+        Task task2 = new Task(2, "task2", "desc2");
+        history.add(task1);
+        history.add(task2);
+
+        history.remove(1);
+
+        assertIterableEquals(List.of(task2), history.getHistory());
+    }
+
+
+    @Test
+    @DisplayName("Удалить несколько экземпляров существующей задачи")
+    void givenManyTaskWithSameId_whenRemove_thenGotAllRemoved() {
+        Task task1 = new Task(1, "task1", "desc1");
+        Task task2 = new Task(2, "task2", "desc2");
+        Task task3 = new Task(1, "task3", "desc3");
+        history.add(task1);
+        history.add(task2);
+        history.add(task3);
+
+        history.remove(1);
+
+        assertIterableEquals(List.of(task2), history.getHistory());
+    }
+
+    @Test
+    @DisplayName("Удалить несуществующую задачу из истории")
+    void givenNonExistingTask_whenRemove_thenNothingHappens() {
+        Task task1 = new Task(1, "task1", "desc1");
+        Task task2 = new Task(2, "task2", "desc2");
+        history.add(task1);
+        history.add(task2);
+
+        history.remove(3);
+
+        assertIterableEquals(List.of(task2, task1), history.getHistory());
     }
 }
