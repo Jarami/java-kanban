@@ -6,7 +6,9 @@ import tasks.Subtask;
 import tasks.Task;
 
 public class Tasks {
-    private Tasks(){}
+    private Tasks() {
+
+    }
 
     public static Task createAndSaveTask(TaskManager manager, String name, String desc) {
         Task task = new Task(name, desc);
