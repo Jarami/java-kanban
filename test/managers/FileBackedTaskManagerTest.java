@@ -224,7 +224,7 @@ class FileBackedTaskManagerTest {
         assertEquals(expectedIds, actualIds);
     }
 
-    private String join(Object ...objects) {
+    private String join(Object... objects) {
         return Arrays.stream(objects)
                 .map(String::valueOf)
                 .collect(Collectors.joining(FileBackedTaskManager.SEPARATOR));

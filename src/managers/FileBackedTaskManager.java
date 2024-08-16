@@ -198,7 +198,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
                 subtask.getEpicId());
     }
 
-    private String join(Object ...objects) {
+    private String join(Object... objects) {
         return Arrays.stream(objects)
                 .map(String::valueOf)
                 .collect(Collectors.joining(SEPARATOR));
