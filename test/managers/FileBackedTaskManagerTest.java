@@ -6,6 +6,7 @@ import tasks.Epic;
 import tasks.Subtask;
 import tasks.Task;
 import tasks.TaskStatus;
+import util.CSVFormat;
 
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -227,7 +228,7 @@ class FileBackedTaskManagerTest {
     private String join(Object... objects) {
         return Arrays.stream(objects)
                 .map(String::valueOf)
-                .collect(Collectors.joining(FileBackedTaskManager.SEPARATOR));
+                .collect(Collectors.joining(CSVFormat.SEPARATOR));
     }
 
     private String readLastLine() throws IOException {
@@ -238,7 +239,7 @@ class FileBackedTaskManagerTest {
         return Files.readAllLines(taskFile, StandardCharsets.UTF_8)
                 .stream()
                 .skip(1)
-                .map(line -> line.split(FileBackedTaskManager.SEPARATOR))
+                .map(line -> line.split(CSVFormat.SEPARATOR))
                 .map(chunks -> Integer.parseInt(chunks[0]))
                 .toList();
     }

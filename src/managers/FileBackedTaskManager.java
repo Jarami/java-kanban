@@ -1,22 +1,18 @@
 package managers;
 
 import exceptions.ManagerSaveException;
-import tasks.*;
+import tasks.Epic;
+import tasks.Subtask;
+import tasks.Task;
+import util.CSVFormat;
 import util.Tasks;
 
 import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Arrays;
-import java.util.List;
-import java.util.stream.Collectors;
-
-import static tasks.TaskType.*;
 
 public class FileBackedTaskManager extends InMemoryTaskManager {
 
-    public static final String SEPARATOR = "\t";
     private final Path taskFile;
 
     public FileBackedTaskManager(Path taskFile) {
@@ -47,7 +43,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
 
         FileBackedTaskManager manager = new FileBackedTaskManager(path);
 
-        for (Task task : loadTasksFromFile(path)) {
+        for (Task task : CSVFormat.loadTasksFromFile(path)) {
             if (task instanceof Epic) {
                 manager.saveEpic((Epic)task);
             } else if (task instanceof Subtask) {
@@ -58,31 +54,6 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
         }
 
         return manager;
-    }
-
-    private static List<Task> loadTasksFromFile(Path path) throws IOException {
-
-        return Files.readAllLines(path, StandardCharsets.UTF_8)
-                .stream()
-                .skip(1)
-                .map(FileBackedTaskManager::fromString)
-                .toList();
-    }
-
-    private static Task fromString(String line) {
-        String[] chunks = line.split(SEPARATOR);
-        int id = Integer.parseInt(chunks[0]);
-        TaskType type = TaskType.valueOf(chunks[1]);
-        String name = chunks[2];
-        TaskStatus status = TaskStatus.valueOf(chunks[3]);
-        String desc = chunks[4];
-
-        return switch (type) {
-            case TASK -> new Task(id, name, desc, status);
-            case EPIC -> new Epic(id, name, desc);
-            case SUBTASK -> new Subtask(id, name, desc, status, Integer.parseInt(chunks[5]));
-            default -> throw new ManagerSaveException("Неизвестный тип задачи " + type);
-        };
     }
 
     @Override
@@ -162,45 +133,20 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
 
     private void save() {
 
-        try (TaskFileWriter writer = new TaskFileWriter(taskFile)) {
-
-            writer.println(getHeader());
+        try (CSVFormat.TaskFileWriter writer = CSVFormat.writer(taskFile)) {
 
             for (Task task : getTasks()) {
-                writer.println(taskToString(task));
+                writer.println(task);
             }
             for (Epic epic : getEpics()) {
-                writer.println(taskToString(epic));
+                writer.println(epic);
             }
             for (Subtask subtask : getSubtasks()) {
-                writer.println(taskToString(subtask));
+                writer.println(subtask);
             }
 
         } catch (IOException e) {
             throw new ManagerSaveException("Не удалось сохранить задачи", e);
         }
-    }
-
-    private String getHeader() {
-        return join("id", "type", "name", "status", "description", "epic");
-    }
-
-    private String taskToString(Task task) {
-        return join(task.getId(), TASK, task.getName(), task.getStatus(), task.getDescription());
-    }
-
-    private String taskToString(Epic epic) {
-        return join(epic.getId(), EPIC, epic.getName(), epic.getStatus(), epic.getDescription());
-    }
-
-    private String taskToString(Subtask subtask) {
-        return join(subtask.getId(), SUBTASK, subtask.getName(), subtask.getStatus(), subtask.getDescription(),
-                subtask.getEpicId());
-    }
-
-    private String join(Object... objects) {
-        return Arrays.stream(objects)
-                .map(String::valueOf)
-                .collect(Collectors.joining(SEPARATOR));
     }
 }
