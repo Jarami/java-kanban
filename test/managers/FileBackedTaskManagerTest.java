@@ -8,7 +8,9 @@ import tasks.Task;
 import tasks.TaskStatus;
 import util.CSVFormat;
 
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -19,7 +21,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import static lib.TestAssertions.*;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
 import static tasks.TaskStatus.*;
 import static tasks.TaskType.*;
 
@@ -56,6 +58,23 @@ class FileBackedTaskManagerTest {
         assertSubtaskEquals(sub3, manager2.getSubtaskById(sub3.getId()));
         assertEquals(7, manager2.getTasks().size() + manager2.getEpics().size()
                 + manager2.getSubtasks().size());
+    }
+
+    @Test
+    public void testThatIdGeneratorUpdatedAfterLoadingTasksFromFile() throws IOException {
+        try (PrintWriter writer = new PrintWriter(new FileWriter(taskFile.toFile(), StandardCharsets.UTF_8))) {
+            writer.println(join("id","type","name","status","description","epic"));
+            writer.println(join("2","TASK","task1","DONE","desk of task1"));
+            writer.println(join("1","TASK","task2","NEW","desk of task2"));
+        }
+
+        TaskManager manager2 = FileBackedTaskManager.loadFromFile(taskFile);
+        Set<Integer> ids = manager2.getTasks().stream().map(Task::getId).collect(Collectors.toSet());
+
+        Task newTask = new Task("task3", "desc of task3");
+        manager2.saveTask(newTask);
+
+        assertFalse(ids.contains(newTask.getId()));
     }
 
     @Test

@@ -31,6 +31,12 @@ public class InMemoryTaskManager implements TaskManager {
         return ++taskCounter;
     }
 
+    private synchronized void setGeneratedId(int id) {
+        if (taskCounter < id) {
+            taskCounter = id;
+        }
+    }
+
     // Сохранение
     @Override
     public int saveTask(Task task) {
@@ -38,6 +44,8 @@ public class InMemoryTaskManager implements TaskManager {
         if (task.getId() == null) {
             int id = generateTaskId();
             task.setId(id);
+        } else {
+            setGeneratedId(task.getId());
         }
 
         taskRepo.save(task);
@@ -53,6 +61,8 @@ public class InMemoryTaskManager implements TaskManager {
         if (epic.getId() == null) {
             int id = generateTaskId();
             epic.setId(id);
+        } else {
+            setGeneratedId(epic.getId());
         }
 
         epicRepo.save(epic);
@@ -71,6 +81,8 @@ public class InMemoryTaskManager implements TaskManager {
             if (subtask.getId() == null) {
                 int id = generateTaskId();
                 subtask.setId(id);
+            } else {
+                setGeneratedId(subtask.getId());
             }
 
             subtaskRepo.save(subtask);
