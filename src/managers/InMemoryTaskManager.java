@@ -35,38 +35,44 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public int saveTask(Task task) {
 
-        int id = generateTaskId();
+        if (task.getId() == null) {
+            int id = generateTaskId();
+            task.setId(id);
+        }
 
-        task.setId(id);
         taskRepo.save(task);
 
         System.out.println("task created: " + task);
 
-        return id;
+        return task.getId();
     }
 
     @Override
     public int saveEpic(Epic epic) {
 
-        int id = generateTaskId();
+        if (epic.getId() == null) {
+            int id = generateTaskId();
+            epic.setId(id);
+        }
 
-        epic.setId(id);
         epicRepo.save(epic);
 
         System.out.println("epic created: " + epic);
 
-        return id;
+        return epic.getId();
     }
 
     @Override
     public int saveSubtask(Subtask subtask) {
 
-        int id = generateTaskId();
-
         Epic epic = getEpicOfSubtask(subtask);
         if (epic != null) {
 
-            subtask.setId(id);
+            if (subtask.getId() == null) {
+                int id = generateTaskId();
+                subtask.setId(id);
+            }
+
             subtaskRepo.save(subtask);
 
             // добавляем id подзадачи эпику
@@ -75,7 +81,7 @@ public class InMemoryTaskManager implements TaskManager {
 
             System.out.println("subtask created: " + subtask);
 
-            return id;
+            return subtask.getId();
         }
 
         return -1;

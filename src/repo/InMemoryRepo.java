@@ -3,11 +3,11 @@ package repo;
 import tasks.Task;
 
 import java.util.Collection;
+import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.HashMap;
 
 public class InMemoryRepo<T extends Task> implements TaskRepo<T> {
-    private final Map<Integer, T> repo = new HashMap<>();
+    private final Map<Integer, T> repo = new LinkedHashMap<>();
 
     @Override
     public void save(T task) {
