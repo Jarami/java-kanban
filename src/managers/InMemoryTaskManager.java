@@ -1,5 +1,6 @@
 package managers;
 
+import exceptions.ManagerSaveException;
 import repo.InMemoryRepo;
 import repo.TaskRepo;
 import tasks.Epic;
@@ -41,6 +42,10 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public int saveTask(Task task) {
 
+        if (task.getDuration() != null && task.getDuration().toMinutes() < 0) {
+            throw new ManagerSaveException("Продолжительность выполнения задачи должна быть положительной!");
+        }
+
         if (task.getId() == null) {
             int id = generateTaskId();
             task.setId(id);
@@ -58,6 +63,10 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public int saveEpic(Epic epic) {
 
+        if (epic.getDuration() != null && epic.getDuration().toMinutes() < 0) {
+            throw new ManagerSaveException("Продолжительность выполнения задачи должна быть положительной!");
+        }
+
         if (epic.getId() == null) {
             int id = generateTaskId();
             epic.setId(id);
@@ -74,6 +83,10 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public int saveSubtask(Subtask subtask) {
+
+        if (subtask.getDuration() != null && subtask.getDuration().toMinutes() < 0) {
+            throw new ManagerSaveException("Продолжительность выполнения задачи должна быть положительной!");
+        }
 
         Epic epic = getEpicOfSubtask(subtask);
         if (epic != null) {

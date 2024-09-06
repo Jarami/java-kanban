@@ -5,13 +5,18 @@ import tasks.Epic;
 import tasks.Subtask;
 import tasks.Task;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
+
 public class Tasks {
     private Tasks() {
 
     }
 
-    public static Task createAndSaveTask(TaskManager manager, String name, String desc) {
-        Task task = new Task(name, desc);
+    public static Task createAndSaveTask(TaskManager manager, String name, String desc, LocalDateTime startTime,
+                                         Duration duration) {
+
+        Task task = new Task(name, desc, startTime, duration);
         manager.saveTask(task);
         return task;
     }
@@ -22,8 +27,9 @@ public class Tasks {
         return epic;
     }
 
-    public static Subtask createAndSaveSubtask(TaskManager manager, String name, String desc, Epic epic) {
-        Subtask sub = new Subtask(name, desc, epic);
+    public static Subtask createAndSaveSubtask(TaskManager manager, String name, String desc, Epic epic,
+                                               LocalDateTime startTime, Duration duration) {
+        Subtask sub = new Subtask(name, desc, epic, startTime, duration);
         manager.saveSubtask(sub);
         return sub;
     }
@@ -33,7 +39,7 @@ public class Tasks {
 
         for (int i = 0; i < subtaskCount; i++) {
             createAndSaveSubtask(manager, "sub " + i + " of " + name, "sub " + i + " desc of " + name,
-                    epic);
+                    epic, null, null);
         }
     }
 

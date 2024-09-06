@@ -29,13 +29,13 @@ class EpicTest {
     @DisplayName("Добавить подзадачу, если отсутствует")
     void addSubtaskIfAbsent() {
         // добавляем первую подзадачу
-        Subtask sub1 = new Subtask("sub1", "desc1", epic);
+        Subtask sub1 = new Subtask("sub1", "desc1", epic, null, null);
         manager.saveSubtask(sub1);
         epic.addSubtaskIdIfAbsent(sub1);
         assertIterableEquals(List.of(sub1), manager.getSubtasksOfEpic(epic));
 
         // добавляем вторую подзадачу
-        Subtask sub2 = new Subtask("sub2", "desc2", epic);
+        Subtask sub2 = new Subtask("sub2", "desc2", epic, null, null);
         manager.saveSubtask(sub2);
         epic.addSubtaskIdIfAbsent(sub2);
         assertIterableEquals(List.of(sub1, sub2), manager.getSubtasksOfEpic(epic));
@@ -46,7 +46,7 @@ class EpicTest {
     @DisplayName("Не добавлять подзадачу, если присутствует")
     void doNotAddSubtaskIfPresent() {
         // добавляем первую подзадачу
-        Subtask sub1 = new Subtask("sub1", "desc1", epic);
+        Subtask sub1 = new Subtask("sub1", "desc1", epic, null, null);
         manager.saveSubtask(sub1);
 
         epic.addSubtaskIdIfAbsent(sub1);
@@ -58,11 +58,11 @@ class EpicTest {
     @Test
     @DisplayName("Удалить подзадачу, если присутствует")
     void removeSubtaskIdIfPresent() {
-        Subtask sub1 = new Subtask("sub1", "desc1", epic);
+        Subtask sub1 = new Subtask("sub1", "desc1", epic, null, null);
         manager.saveSubtask(sub1);
         epic.addSubtaskIdIfAbsent(sub1);
 
-        Subtask sub2 = new Subtask("sub2", "desc2", epic);
+        Subtask sub2 = new Subtask("sub2", "desc2", epic, null, null);
         manager.saveSubtask(sub2);
         epic.addSubtaskIdIfAbsent(sub2);
 
@@ -79,7 +79,7 @@ class EpicTest {
         Epic epic2 = new Epic("epic1", "desc1");
         manager.saveEpic(epic2);
 
-        Subtask sub = new Subtask("sub1", "desc1", epic1);
+        Subtask sub = new Subtask("sub1", "desc1", epic1, null, null);
         manager.saveSubtask(sub);
 
         epic2.removeSubtask(sub);
@@ -89,11 +89,11 @@ class EpicTest {
     @Test
     @DisplayName("Удалить все подзадачи")
     void removeSubtasks() {
-        Subtask sub1 = new Subtask("sub1", "desc1", epic);
+        Subtask sub1 = new Subtask("sub1", "desc1", epic, null, null);
         manager.saveSubtask(sub1);
         epic.addSubtaskIdIfAbsent(sub1);
 
-        Subtask sub2 = new Subtask("sub2", "desc2", epic);
+        Subtask sub2 = new Subtask("sub2", "desc2", epic, null, null);
         manager.saveSubtask(sub2);
         epic.addSubtaskIdIfAbsent(sub2);
 

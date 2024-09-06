@@ -4,6 +4,8 @@ import tasks.Epic;
 import tasks.Subtask;
 import tasks.Task;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.*;
 
 public class Main {
@@ -38,14 +40,14 @@ public class Main {
     }
 
     private static void createTasks() {
-        createAndSaveTask("task1", "desc of task1");
-        createAndSaveTask("task2", "desc of task2");
+        createAndSaveTask("task1", "desc of task1", LocalDateTime.parse("2024-01-01T00:00:00"), Duration.ofMinutes(123));
+        createAndSaveTask("task2", "desc of task2", LocalDateTime.parse("2024-01-02T00:00:00"), Duration.ofMinutes(234));
         createAndSaveEpicWithSubs("epic1", "desc of epic1", 3);
         createAndSaveEpicWithSubs("epic2", "desc of epic2", 0);
     }
 
-    private static void createAndSaveTask(String name, String desc) {
-        Task task = new Task(name, desc);
+    private static void createAndSaveTask(String name, String desc, LocalDateTime startTime, Duration duration) {
+        Task task = new Task(name, desc, startTime, duration);
         manager.saveTask(task);
         tasks.add(task);
     }
@@ -55,10 +57,16 @@ public class Main {
         manager.saveEpic(epic);
         tasks.add(epic);
 
+        LocalDateTime epicStartTime = LocalDateTime.of(2024, 1, 1, 0 ,0, 0);
+
         if (subtaskCount > 0) {
             for (int i = 0; i < subtaskCount; i++) {
-                Subtask sub = new Subtask("sub " + i + " of " + name, "sub " + i + " desc of " + name,
-                        epic);
+                String subName = "sub " + i + " of " + name;
+                String subDesc = "sub " + i + " desc of " + name;
+                Duration subDuration = Duration.ofMinutes(i);
+                LocalDateTime subStartTime = epicStartTime.plusDays(i);
+
+                Subtask sub = new Subtask(subName, subDesc, epic, subStartTime, subDuration);
                 manager.saveSubtask(sub);
                 tasks.add(sub);
             }

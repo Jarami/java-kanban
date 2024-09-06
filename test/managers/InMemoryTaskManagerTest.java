@@ -1,14 +1,15 @@
 package managers;
 
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Nested;
-import org.junit.jupiter.api.Test;
+import exceptions.ManagerSaveException;
+import org.junit.jupiter.api.*;
 import tasks.Epic;
 import tasks.Subtask;
 import tasks.Task;
 import tasks.TaskStatus;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
@@ -18,6 +19,8 @@ import static org.junit.jupiter.api.Assertions.*;
 import static tasks.TaskStatus.*;
 
 class InMemoryTaskManagerTest {
+
+    public static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     TaskManager manager;
 
@@ -29,10 +32,18 @@ class InMemoryTaskManagerTest {
     @Nested
     @DisplayName("При сохранении")
     class WhenSaving {
+
+        @Test
+        @DisplayName("обычная задача не сохраняется, если duration не положителный")
+        public void testThatManagerDoesNotSaveTaskWithNonPositiveDuration(){
+            Task task = new Task("task", "desc", parseTime("2024-01-01 01:02:03"), Duration.ofMinutes(-1));
+            assertThrows(ManagerSaveException.class, () -> manager.saveTask(task));
+        }
+
         @Test
         @DisplayName("обычная задача получает id и статус NEW")
         void testThatMangerSavesTask() {
-            Task task = new Task("t", "dt");
+            Task task = new Task("t", "dt", null, null);
             int id = manager.saveTask(task);
 
             assertEquals(id, task.getId(), "После сохранения id должен быть определен");
@@ -42,7 +53,7 @@ class InMemoryTaskManagerTest {
         @Test
         @DisplayName("обычная задача не изменяет имени и описания")
         void testThatTaskDoesNotChangeNameAndDescAfterSaving() {
-            Task task = new Task("task", "desc");
+            Task task = new Task("task", "desc", null, null);
             manager.saveTask(task);
 
             Task actTask = manager.getTaskById(task.getId());
@@ -73,12 +84,19 @@ class InMemoryTaskManagerTest {
         }
 
         @Test
+        @DisplayName("эпик не сохраняется, если duration не положителный")
+        public void testThatManagerDoesNotSaveEpicWithNonPositiveDuration(){
+            Epic epic = new Epic("epic", "desc", parseTime("2024-01-01 01:02:03"), Duration.ofMinutes(-1));
+            assertThrows(ManagerSaveException.class, () -> manager.saveEpic(epic));
+        }
+
+        @Test
         @DisplayName("подзадача получает id и статус NEW")
         void testThatManagerSavesSubtask() {
             Epic epic = new Epic("epic", "desc of epic");
             manager.saveEpic(epic);
 
-            Subtask subtask = new Subtask("sub", "desc of sub", epic);
+            Subtask subtask = new Subtask("sub", "desc of sub", epic, null, null);
             int id = manager.saveSubtask(subtask);
 
             assertEquals(id, subtask.getId(), "После сохранения id должен быть определен");
@@ -91,7 +109,7 @@ class InMemoryTaskManagerTest {
             Epic epic = new Epic("epic", "desc");
             manager.saveEpic(epic);
 
-            Subtask sub = new Subtask("sub", "desc of sub", epic);
+            Subtask sub = new Subtask("sub", "desc of sub", epic, null, null);
             manager.saveSubtask(sub);
 
             Subtask actSub = manager.getSubtaskById(sub.getId());
@@ -101,20 +119,29 @@ class InMemoryTaskManagerTest {
         }
 
         @Test
+        @DisplayName("подзадача не сохраняется, если duration не положителный")
+        public void testThatManagerDoesNotSaveSubtaskWithNonPositiveDuration(){
+            Epic epic = new Epic("epic", "desc");
+            manager.saveEpic(epic);
+            Subtask sub = new Subtask("sub", "desc", epic, parseTime("2024-01-01 01:02:03"), Duration.ofMinutes(-1));
+            assertThrows(ManagerSaveException.class, () -> manager.saveSubtask(sub));
+        }
+
+        @Test
         @DisplayName("id разных задач отличаются")
         void testThatDifferentTasksHaveDifferentId() {
 
-            int id1 = manager.saveTask(new Task("task1", "desc of task1"));
-            int id2 = manager.saveTask(new Task("task2", "desc of task2"));
+            int id1 = manager.saveTask(new Task("task1", "desc of task1", null, null));
+            int id2 = manager.saveTask(new Task("task2", "desc of task2", null, null));
 
             Epic epic1 = new Epic("epic1", "desc of epic1");
             int id3 = manager.saveEpic(epic1);
             Epic epic2 = new Epic("epic2", "desc of epic2");
             int id4 = manager.saveEpic(epic2);
 
-            int id5 = manager.saveSubtask(new Subtask("sub1 of epic1", "d11", epic1));
-            int id6 = manager.saveSubtask(new Subtask("sub2 of epic1", "d12", epic1));
-            int id7 = manager.saveSubtask(new Subtask("sub1 of epic2", "d21", epic2));
+            int id5 = manager.saveSubtask(new Subtask("sub1 of epic1", "d11", epic1, null, null));
+            int id6 = manager.saveSubtask(new Subtask("sub2 of epic1", "d12", epic1, null, null));
+            int id7 = manager.saveSubtask(new Subtask("sub1 of epic2", "d21", epic2, null, null));
 
             Set<Integer> ids = Set.of(id1, id2, id3, id4, id5, id6, id7);
 
@@ -138,10 +165,10 @@ class InMemoryTaskManagerTest {
         @DisplayName("возвращаются все сохраненные обычные задачи")
         void testThatManagerReturnsAllTasks() {
 
-            Task task1 = new Task("task1", "desc of task1");
+            Task task1 = new Task("task1", "desc of task1", null, null);
             manager.saveTask(task1);
 
-            Task task2 = new Task("task2", "desc of task2");
+            Task task2 = new Task("task2", "desc of task2", null, null);
             manager.saveTask(task2);
 
             Set<Task> expectedTasks = Set.of(task1, task2);
@@ -154,10 +181,10 @@ class InMemoryTaskManagerTest {
         @DisplayName("возвращается обычная задача по id")
         void testThatManagerReturnsTaskById() {
 
-            Task task1 = new Task("task1", "desc of task1");
+            Task task1 = new Task("task1", "desc of task1", null, null);
             int id1 = manager.saveTask(task1);
 
-            Task task2 = new Task("task2", "desc of task2");
+            Task task2 = new Task("task2", "desc of task2", null, null);
             int id2 = manager.saveTask(task2);
 
             assertEquals(task1, manager.getTaskById(id1), "Должна вернуться первая задача");
@@ -269,9 +296,9 @@ class InMemoryTaskManagerTest {
         @DisplayName("обычная задача может изменить имя, описание и статус")
         public void testThatManagerUpdateTask() {
 
-            int id = manager.saveTask(new Task("task", "desc", NEW));
+            int id = manager.saveTask(new Task("task", "desc", NEW, null, null));
 
-            Task newTask = new Task(id, "updated task", "updated desc", DONE);
+            Task newTask = new Task(id, "updated task", "updated desc", DONE, null, null);
             manager.updateTask(newTask);
 
             Task actualTask = manager.getTaskById(id);
@@ -282,7 +309,7 @@ class InMemoryTaskManagerTest {
         @Test
         @DisplayName("можно обновить только сохраненную задачу")
         void testThatOnlySavedTaskCanBeUpdated() {
-            manager.updateTask(new Task("updated task", "updated desc"));
+            manager.updateTask(new Task("updated task", "updated desc", null, null));
 
             assertEmpty(manager.getTasks());
         }
@@ -290,7 +317,7 @@ class InMemoryTaskManagerTest {
         @Test
         @DisplayName("можно обновить только существующую задачу")
         void testThatOnlyExistingTaskCanBeUpdated() {
-            manager.updateTask(new Task(1, "updated task", "updated desc"));
+            manager.updateTask(new Task(1, "updated task", "updated desc", null, null));
 
             assertNull(manager.getTaskById(1));
         }
@@ -338,7 +365,7 @@ class InMemoryTaskManagerTest {
             Epic epic = createAndSaveEpic();
             Subtask sub = createAndSaveSubtask(NEW, epic);
 
-            Subtask newSub = new Subtask(sub.getId(), "new sub", "new desc", DONE, epic);
+            Subtask newSub = new Subtask(sub.getId(), "new sub", "new desc", DONE, epic, null, null);
             manager.updateSubtask(newSub);
 
             Subtask actualSub = manager.getSubtaskById(sub.getId());
@@ -350,7 +377,7 @@ class InMemoryTaskManagerTest {
         void testThatOnlySavedSubtaskCanBeUpdated() {
             Epic epic = createAndSaveEpic();
 
-            Subtask sub = new Subtask("updated sub", "desc of updated sub", epic);
+            Subtask sub = new Subtask("updated sub", "desc of updated sub", epic, null, null);
             manager.updateSubtask(sub);
 
             assertEmpty(manager.getSubtasks());
@@ -360,7 +387,7 @@ class InMemoryTaskManagerTest {
         @DisplayName("можно обновить только существующую подзадачу")
         void testThatOnlyExistingSubtaskCanBeUpdated() {
             Epic epic = new Epic("epic", "desc");
-            Subtask sub = new Subtask(1, "updated sub", "desc of updated sub", epic);
+            Subtask sub = new Subtask(1, "updated sub", "desc of updated sub", epic, null, null);
 
             manager.updateSubtask(sub);
 
@@ -375,7 +402,7 @@ class InMemoryTaskManagerTest {
 
             manager.removeEpics();
 
-            Subtask newSub = new Subtask(sub.getId(), "new sub", "desc of new sub", epic);
+            Subtask newSub = new Subtask(sub.getId(), "new sub", "desc of new sub", epic, null, null);
             manager.updateSubtask(newSub);
 
             assertNull(manager.getSubtaskById(sub.getId()));
@@ -389,7 +416,7 @@ class InMemoryTaskManagerTest {
 
             Epic newEpic = createAndSaveEpic();
 
-            Subtask newSub = new Subtask(sub.getId(), sub.getName(), sub.getDescription(), sub.getStatus(), newEpic);
+            Subtask newSub = new Subtask(sub.getId(), sub.getName(), sub.getDescription(), sub.getStatus(), newEpic, null, null);
             manager.updateSubtask(newSub);
 
             Subtask actualSub = manager.getSubtaskById(sub.getId());
@@ -404,7 +431,7 @@ class InMemoryTaskManagerTest {
             Epic epic = createAndSaveEpic();
             Subtask sub = createAndSaveSubtask(NEW, epic);
 
-            Subtask newSub = new Subtask(sub.getId(), "new sub", "new desc", NEW, epic);
+            Subtask newSub = new Subtask(sub.getId(), "new sub", "new desc", NEW, epic, null, null);
             manager.updateSubtask(newSub);
 
             List<Subtask> subtasks = manager.getSubtasksOfEpic(epic);
@@ -596,7 +623,7 @@ class InMemoryTaskManagerTest {
 
             manager.removeEpics();
 
-            Subtask newSub = new Subtask(sub.getId(), "sub2", "desc2", epic);
+            Subtask newSub = new Subtask(sub.getId(), "sub2", "desc2", epic, null, null);
             manager.updateSubtask(newSub);
 
             assertEmpty(manager.getSubtasks(), "подзадач не должно существовать");
@@ -693,7 +720,7 @@ class InMemoryTaskManagerTest {
             TaskStatus oldStatus = task.getStatus();
 
             // меняем task
-            Task newTask = new Task(id, "new task", "new desc", TaskStatus.DONE);
+            Task newTask = new Task(id, "new task", "new desc", TaskStatus.DONE, null, null);
             manager.updateTask(newTask);
 
             Task historyTask = manager.getHistory().getFirst();
@@ -850,13 +877,13 @@ class InMemoryTaskManagerTest {
     }
 
     private Task createAndSaveTask() {
-        Task task = new Task("task", "desc");
+        Task task = new Task("task", "desc", null, null);
         manager.saveTask(task);
         return task;
     }
 
     private Task createAndSaveTask(String name, String desc) {
-        Task task = new Task(name, desc);
+        Task task = new Task(name, desc, null, null);
         manager.saveTask(task);
         return task;
     }
@@ -872,7 +899,7 @@ class InMemoryTaskManagerTest {
         Epic epic = createAndSaveEpic();
 
         for (int i = 0; i < subtaskCount; i++) {
-            Subtask sub = new Subtask("sub of e " + i, "desc of sub " + i, epic);
+            Subtask sub = new Subtask("sub of e " + i, "desc of sub " + i, epic, null, null);
             manager.saveSubtask(sub);
         }
 
@@ -880,14 +907,18 @@ class InMemoryTaskManagerTest {
     }
 
     private Subtask createAndSaveSubtask(Epic epic) {
-        Subtask sub = new Subtask("sub", "desc of sub", epic);
+        Subtask sub = new Subtask("sub", "desc of sub", epic, null, null);
         manager.saveSubtask(sub);
         return sub;
     }
 
     private Subtask createAndSaveSubtask(TaskStatus status, Epic epic) {
-        Subtask sub = new Subtask("sub", "desc of sub", status, epic);
+        Subtask sub = new Subtask("sub", "desc of sub", status, epic, null, null);
         manager.saveSubtask(sub);
         return sub;
+    }
+
+    private LocalDateTime parseTime(String formattedTime) {
+        return formattedTime.equals("null") ? null : LocalDateTime.parse(formattedTime, DATE_TIME_FORMATTER);
     }
 }

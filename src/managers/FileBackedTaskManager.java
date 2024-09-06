@@ -29,8 +29,8 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
 
         TaskManager manager = new FileBackedTaskManager(taskFile);
 
-        Tasks.createAndSaveTask(manager, "task1", "desc1");
-        Tasks.createAndSaveTask(manager, "task2", "desc2");
+        Tasks.createAndSaveTask(manager, "task1", "desc1", null, null);
+        Tasks.createAndSaveTask(manager, "task2", "desc2", null, null);
         Tasks.createAndSaveEpicWithSubs(manager, "epic1", "epic desc1", 0);
         Tasks.createAndSaveEpicWithSubs(manager, "epic2", "epic desc2", 3);
 

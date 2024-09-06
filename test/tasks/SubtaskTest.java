@@ -23,7 +23,7 @@ class SubtaskTest {
     void getEpicIdIfEpicSaved() {
         Epic epic = new Epic("epic", "desc");
         int epicId = manager.saveEpic(epic);
-        Subtask sub = new Subtask("sub", "sub desc", epic);
+        Subtask sub = new Subtask("sub", "sub desc", epic, null, null);
 
         int actualEpicId = sub.getEpicId();
 
@@ -34,7 +34,7 @@ class SubtaskTest {
     @DisplayName("Вернуть null, если эпик не сохранен")
     void getNullIfEpicNotSaved() {
         Epic epic = new Epic("epic", "desc");
-        Subtask sub = new Subtask("sub", "sub desc", epic);
+        Subtask sub = new Subtask("sub", "sub desc", epic, null, null);
 
         assertNull(sub.getEpicId());
     }
@@ -43,7 +43,7 @@ class SubtaskTest {
     @DisplayName("Проверить, что после создания у подзадачи нет id и статус NEW")
     void testThatNewTaskHasNullIdAndNewStatus() {
         Epic epic = new Epic("epic", "desc");
-        Subtask sub = new Subtask("sub", "desc of sub", epic);
+        Subtask sub = new Subtask("sub", "desc of sub", epic, null, null);
 
         assertNull(sub.getId());
         assertEquals(TaskStatus.NEW, sub.getStatus());
