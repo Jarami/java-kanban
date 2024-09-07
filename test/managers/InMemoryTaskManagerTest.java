@@ -42,7 +42,7 @@ class InMemoryTaskManagerTest {
 
         @Test
         @DisplayName("обычная задача получает id и статус NEW")
-        void testThatMangerSavesTask() {
+        public void testThatMangerSavesTask() {
             Task task = new Task("t", "dt", null, null);
             int id = manager.saveTask(task);
 
@@ -52,7 +52,7 @@ class InMemoryTaskManagerTest {
 
         @Test
         @DisplayName("обычная задача не изменяет имени и описания")
-        void testThatTaskDoesNotChangeNameAndDescAfterSaving() {
+        public void testThatTaskDoesNotChangeNameAndDescAfterSaving() {
             Task task = new Task("task", "desc", null, null);
             manager.saveTask(task);
 
@@ -64,7 +64,7 @@ class InMemoryTaskManagerTest {
 
         @Test
         @DisplayName("эпик получает id и статус NEW")
-        void testThatManagerSavesEpic() {
+        public void testThatManagerSavesEpic() {
             Epic epic = new Epic("e", "d");
             int id = manager.saveEpic(epic);
 
@@ -74,7 +74,7 @@ class InMemoryTaskManagerTest {
 
         @Test
         @DisplayName("эпик не изменяет имени, описания")
-        void testThatEpicDoesNotChangeNameAndDescAfterSaving() {
+        public void testThatEpicDoesNotChangeNameAndDescAfterSaving() {
             int id = manager.saveEpic(new Epic("epic", "desc"));
 
             Epic actEpic = manager.getEpicById(id);
@@ -92,7 +92,7 @@ class InMemoryTaskManagerTest {
 
         @Test
         @DisplayName("подзадача получает id и статус NEW")
-        void testThatManagerSavesSubtask() {
+        public void testThatManagerSavesSubtask() {
             Epic epic = new Epic("epic", "desc of epic");
             manager.saveEpic(epic);
 
@@ -105,7 +105,7 @@ class InMemoryTaskManagerTest {
 
         @Test
         @DisplayName("подзадача не изменяет имени и описания")
-        void testThatSubtaskDoesNotChangeNameAndDescAfterSaving() {
+        public void testThatSubtaskDoesNotChangeNameAndDescAfterSaving() {
             Epic epic = new Epic("epic", "desc");
             manager.saveEpic(epic);
 
@@ -129,7 +129,7 @@ class InMemoryTaskManagerTest {
 
         @Test
         @DisplayName("id разных задач отличаются")
-        void testThatDifferentTasksHaveDifferentId() {
+        public void testThatDifferentTasksHaveDifferentId() {
 
             int id1 = manager.saveTask(new Task("task1", "desc of task1", null, null));
             int id2 = manager.saveTask(new Task("task2", "desc of task2", null, null));
@@ -154,6 +154,28 @@ class InMemoryTaskManagerTest {
             Epic epic = createAndSaveEpicWithSubtasks(2);
 
             assertEquals(NEW, epic.getStatus());
+        }
+
+        @Test
+        @DisplayName("задачи и подзадачи возвращаются в getPrioritizedTasks")
+        public void testThatTasksAndSubtasksArePrioritized() {
+            // name;description;status;startTime;duration
+            Task task1 = createAndSaveTask("task;desc1;NEW;2024-01-10 01:02:03;123");
+            Task task2 = createAndSaveTask("task;desc2;NEW;2024-01-09 02:03:04;234");
+
+            // name;description
+            Epic epic1 = createAndSaveEpic("epic;desc3");
+            Epic epic2 = createAndSaveEpic("epic;desc4");
+
+            // name;description;status;epicId;startTime;duration
+            Subtask sub1 = createAndSaveSubtask("sub1;desc5;NEW;" + epic1.getId() + ";2024-01-08 03:04:05;345");
+            Subtask sub2 = createAndSaveSubtask("sub2;desc6;NEW;" + epic1.getId() + ";2024-01-07 04:05:06;456");
+            Subtask sub3 = createAndSaveSubtask("sub3;desc7;NEW;" + epic1.getId() + ";null;456");
+
+            List<Task> actualTasks = manager.getPrioritizedTasks();
+            List<Task> expectedTasks = List.of(sub2, sub1, task2, task1);
+
+            assertIterableEquals(expectedTasks, actualTasks);
         }
     }
 
@@ -534,6 +556,40 @@ class InMemoryTaskManagerTest {
             assertEquals(parseTime("2024-01-04 01:00:00"), epic.getEndTime(),
                     "начало должно быть 2024-01-04 01:00:00, а не " + epic.getEndTime());
         }
+
+        @Test
+        @DisplayName("задачи и подзадачи возвращаются в getPrioritizedTasks")
+        public void testThatTasksAndSubtasksAreRePrioritized() {
+            // name;description;status;startTime;duration
+            Task task1 = createAndSaveTask("task;desc1;NEW;2024-01-10 01:02:03;123");
+            Task task2 = createAndSaveTask("task;desc2;NEW;2024-01-09 02:03:04;234");
+
+            // name;description
+            Epic epic1 = createAndSaveEpic("epic;desc3");
+            Epic epic2 = createAndSaveEpic("epic;desc4");
+
+            // name;description;status;epicId;startTime;duration
+            Subtask sub1 = createAndSaveSubtask("sub1;desc5;NEW;" + epic1.getId() + ";2024-01-08 03:04:05;345");
+            Subtask sub2 = createAndSaveSubtask("sub2;desc6;NEW;" + epic1.getId() + ";2024-01-07 04:05:06;456");
+            Subtask sub3 = createAndSaveSubtask("sub3;desc7;NEW;" + epic1.getId() + ";null;456");
+
+            Subtask newSub2 = new Subtask(sub2.getId(), sub2.getName(), sub2.getDescription(), sub2.getStatus(),
+                    sub2.getEpicId(), parseTime("2024-01-08 10:00:00"), sub2.getDuration());
+            manager.updateSubtask(newSub2);
+
+            Subtask newSub3 = new Subtask(sub3.getId(), sub3.getName(), sub3.getDescription(), sub3.getStatus(),
+                    sub3.getEpicId(), parseTime("2024-01-06 05:06:07"), sub3.getDuration());
+            manager.updateSubtask(newSub3);
+
+            Task newTask2 = new Task(task2.getId(), task2.getName(), task2.getDescription(), task2.getStatus(),
+                    null, task2.getDuration());
+            manager.updateTask(newTask2);
+
+            List<Task> actualTasks = manager.getPrioritizedTasks();
+            List<Task> expectedTasks = List.of(sub3, sub1, sub2, task1);
+
+            assertIterableEquals(expectedTasks, actualTasks);
+        }
     }
 
     @Nested
@@ -709,6 +765,81 @@ class InMemoryTaskManagerTest {
 
             manager.removeSubtaskById(sub.getId());
             assertEmpty(manager.getSubtasks(), "подзадач не должно существовать");
+        }
+
+        @Test
+        @DisplayName("по id задачи и подзадачи возвращаются в getPrioritizedTasks")
+        public void testThatTasksAndSubtasksAreRePrioritized() {
+            // name;description;status;startTime;duration
+            Task task1 = createAndSaveTask("task;desc1;NEW;2024-01-10 01:02:03;123");
+            Task task2 = createAndSaveTask("task;desc2;NEW;2024-01-09 02:03:04;234");
+
+            // name;description
+            Epic epic1 = createAndSaveEpic("epic;desc3");
+            Epic epic2 = createAndSaveEpic("epic;desc4");
+
+            // name;description;status;epicId;startTime;duration
+            Subtask sub1 = createAndSaveSubtask("sub1;desc5;NEW;" + epic1.getId() + ";2024-01-08 03:04:05;345");
+            Subtask sub2 = createAndSaveSubtask("sub2;desc6;NEW;" + epic1.getId() + ";2024-01-07 04:05:06;456");
+            Subtask sub3 = createAndSaveSubtask("sub3;desc7;NEW;" + epic1.getId() + ";2024-01-07 05:06:07;567");
+
+            manager.removeSubtaskById(sub2.getId());
+            List<Task> actualTasks = manager.getPrioritizedTasks();
+            List<Task> expectedTasks = List.of(sub3, sub1, task2, task1);
+
+            assertIterableEquals(expectedTasks, actualTasks);
+
+            manager.removeTaskById(task1.getId());
+            actualTasks = manager.getPrioritizedTasks();
+            expectedTasks = List.of(sub3, sub1, task2);
+
+            assertIterableEquals(expectedTasks, actualTasks);
+        }
+
+        @Test
+        @DisplayName("всех задач в getPrioritizedTasks возвращаются только подзадачи")
+        public void testThatAfterTaskRemovalOnlySubtasksArePrioritized() {
+            // name;description;status;startTime;duration
+            Task task1 = createAndSaveTask("task;desc1;NEW;2024-01-10 01:02:03;123");
+            Task task2 = createAndSaveTask("task;desc2;NEW;2024-01-09 02:03:04;234");
+
+            // name;description
+            Epic epic1 = createAndSaveEpic("epic;desc3");
+            Epic epic2 = createAndSaveEpic("epic;desc4");
+
+            // name;description;status;epicId;startTime;duration
+            Subtask sub1 = createAndSaveSubtask("sub1;desc5;NEW;" + epic1.getId() + ";2024-01-08 03:04:05;345");
+            Subtask sub2 = createAndSaveSubtask("sub2;desc6;NEW;" + epic1.getId() + ";2024-01-07 04:05:06;456");
+            Subtask sub3 = createAndSaveSubtask("sub3;desc7;NEW;" + epic1.getId() + ";2024-01-06 05:06:07;567");
+
+            manager.removeTasks();
+            List<Task> actualTasks = manager.getPrioritizedTasks();
+            List<Task> expectedTasks = List.of(sub3, sub2, sub1);
+
+            assertIterableEquals(expectedTasks, actualTasks);
+        }
+
+        @Test
+        @DisplayName("всех подзадач в getPrioritizedTasks возвращаются только задачи")
+        public void testThatAfterSubtaskRemovalOnlyTasksArePrioritized() {
+            // name;description;status;startTime;duration
+            Task task1 = createAndSaveTask("task;desc1;NEW;2024-01-10 01:02:03;123");
+            Task task2 = createAndSaveTask("task;desc2;NEW;2024-01-09 02:03:04;234");
+
+            // name;description
+            Epic epic1 = createAndSaveEpic("epic;desc3");
+            Epic epic2 = createAndSaveEpic("epic;desc4");
+
+            // name;description;status;epicId;startTime;duration
+            Subtask sub1 = createAndSaveSubtask("sub1;desc5;NEW;" + epic1.getId() + ";2024-01-08 03:04:05;345");
+            Subtask sub2 = createAndSaveSubtask("sub2;desc6;NEW;" + epic1.getId() + ";2024-01-07 04:05:06;456");
+            Subtask sub3 = createAndSaveSubtask("sub3;desc7;NEW;" + epic1.getId() + ";2024-01-06 05:06:07;567");
+
+            manager.removeSubtasks();
+            List<Task> actualTasks = manager.getPrioritizedTasks();
+            List<Task> expectedTasks = List.of(task2, task1);
+
+            assertIterableEquals(expectedTasks, actualTasks);
         }
     }
 
@@ -958,6 +1089,24 @@ class InMemoryTaskManagerTest {
         return task;
     }
 
+    private Task createAndSaveTask(String formattedTask) {
+        Task task = createTask(formattedTask);
+        manager.saveTask(task);
+        return task;
+    }
+
+    // name;description;status;startTime;duration
+    private Task createTask(String formattedTask) {
+        String[] chunks = formattedTask.split(";");
+        return new Task(
+            chunks[0], // name
+            chunks[1], // description
+            TaskStatus.valueOf(chunks[2]), // status
+            parseTime(chunks[3]), // startTime
+            parseDuration(chunks[4]) // duration
+        );
+    }
+
     private Epic createAndSaveEpic() {
         Epic epic = new Epic("e", "d");
         manager.saveEpic(epic);
@@ -1008,6 +1157,7 @@ class InMemoryTaskManagerTest {
         );
     }
 
+    // name;description;status;epicId;startTime;duration
     private Subtask createSubtask(String formattedSubtask) {
         String[] chunks = formattedSubtask.split(";");
         return new Subtask(

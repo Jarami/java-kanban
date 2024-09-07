@@ -6,11 +6,8 @@ import repo.TaskRepo;
 import tasks.Epic;
 import tasks.Subtask;
 import tasks.Task;
-import tasks.TaskStatus;
-import static tasks.TaskStatus.*;
 
-import java.util.List;
-import java.util.ArrayList;
+import java.util.*;
 
 public class InMemoryTaskManager implements TaskManager {
 
@@ -20,6 +17,7 @@ public class InMemoryTaskManager implements TaskManager {
     private final TaskRepo<Epic> epicRepo;
     private final TaskRepo<Subtask> subtaskRepo;
     private final HistoryManager historyManager;
+    private final Set<Task> prioritizedTasks = new TreeSet<>(Comparator.comparing(Task::getStartTime));
 
     public InMemoryTaskManager() {
         taskRepo = new InMemoryRepo<>();
@@ -42,9 +40,7 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public int saveTask(Task task) {
 
-        if (task.getDuration() != null && task.getDuration().toMinutes() < 0) {
-            throw new ManagerSaveException("Продолжительность выполнения задачи должна быть положительной!");
-        }
+        checkTaskBeforeSaving(task);
 
         if (task.getId() == null) {
             int id = generateTaskId();
@@ -53,6 +49,7 @@ public class InMemoryTaskManager implements TaskManager {
             setGeneratedId(task.getId());
         }
 
+        prioritize(task);
         taskRepo.save(task);
 
         System.out.println("task created: " + task);
@@ -63,9 +60,7 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public int saveEpic(Epic epic) {
 
-        if (epic.getDuration() != null && epic.getDuration().toMinutes() < 0) {
-            throw new ManagerSaveException("Продолжительность выполнения задачи должна быть положительной!");
-        }
+        checkTaskBeforeSaving(epic);
 
         if (epic.getId() == null) {
             int id = generateTaskId();
@@ -84,9 +79,7 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public int saveSubtask(Subtask subtask) {
 
-        if (subtask.getDuration() != null && subtask.getDuration().toMinutes() < 0) {
-            throw new ManagerSaveException("Продолжительность выполнения задачи должна быть положительной!");
-        }
+        checkTaskBeforeSaving(subtask);
 
         Epic epic = getEpicOfSubtask(subtask);
         if (epic != null) {
@@ -98,9 +91,9 @@ public class InMemoryTaskManager implements TaskManager {
                 setGeneratedId(subtask.getId());
             }
 
+            prioritize(subtask);
             subtaskRepo.save(subtask);
 
-            // добавляем id подзадачи эпику
             epic.addSubtaskIdIfAbsent(subtask);
             updateEpicProperties(epic);
 
@@ -177,7 +170,11 @@ public class InMemoryTaskManager implements TaskManager {
             return;
         }
 
+        deprioritize(taskRepo.findById(task.getId()));
+        prioritize(task);
+
         taskRepo.save(task);
+
     }
 
     @Override
@@ -214,27 +211,42 @@ public class InMemoryTaskManager implements TaskManager {
             return;
         }
 
+        deprioritize(subtaskRepo.findById(subtask.getId()));
+        prioritize(subtask);
+
         subtaskRepo.save(subtask);
+
         updateEpicProperties(epic);
     }
 
     // Удаление
     @Override
     public void removeTasks() {
-        taskRepo.findAll().forEach(task -> historyManager.remove(task.getId()));
+        taskRepo.findAll().forEach(task -> {
+            deprioritize(task);
+            historyManager.remove(task.getId());
+        });
         taskRepo.delete();
     }
 
     @Override
     public void removeTaskById(int id) {
-        historyManager.remove(id);
-        taskRepo.deleteById(id);
+        Task task = taskRepo.findById(id);
+        if (task != null) {
+            deprioritize(task);
+            historyManager.remove(id);
+            taskRepo.deleteById(id);
+        }
     }
 
     @Override
     public void removeEpics() {
-        subtaskRepo.findAll().forEach(task -> historyManager.remove(task.getId()));
+        subtaskRepo.findAll().forEach(task -> {
+            deprioritize(task);
+            historyManager.remove(task.getId());
+        });
         subtaskRepo.delete();
+
         epicRepo.findAll().forEach(task -> historyManager.remove(task.getId()));
         epicRepo.delete();
     }
@@ -246,6 +258,7 @@ public class InMemoryTaskManager implements TaskManager {
 
         if (epic != null) {
             for (Integer subtaskId : epic.getSubtasksId()) {
+                deprioritize(subtaskRepo.findById(subtaskId));
                 historyManager.remove(subtaskId);
                 subtaskRepo.deleteById(subtaskId);
             }
@@ -257,7 +270,10 @@ public class InMemoryTaskManager implements TaskManager {
     // При удалении подзадач из хранилища также нужно удалить их у эпиков
     @Override
     public void removeSubtasks() {
-        subtaskRepo.findAll().forEach(task -> historyManager.remove(task.getId()));
+        subtaskRepo.findAll().forEach(task -> {
+            deprioritize(task);
+            historyManager.remove(task.getId());
+        });
         subtaskRepo.delete();
 
         for (Epic epic : epicRepo.findAll()) {
@@ -274,6 +290,7 @@ public class InMemoryTaskManager implements TaskManager {
         if (subtask != null) {
             Epic epic = getEpicOfSubtask(subtask);
             if (epic != null) {
+                deprioritize(subtask);
                 historyManager.remove(id);
                 subtaskRepo.deleteById(id);
                 epic.removeSubtask(subtask);
@@ -287,8 +304,32 @@ public class InMemoryTaskManager implements TaskManager {
         return historyManager.getHistory();
     }
 
+    @Override
+    public List<Task> getPrioritizedTasks() {
+        return new ArrayList<>(prioritizedTasks);
+    }
+
+    private void checkTaskBeforeSaving(Task task) {
+        if (task.getDuration() != null && task.getDuration().toMinutes() < 0) {
+            throw new ManagerSaveException("Продолжительность выполнения задачи должна быть положительной!");
+        }
+    }
+
     private void updateEpicProperties(Epic epic) {
         List<Subtask> subtasks = getSubtasksOfEpic(epic);
         epic.update(subtasks);
     }
+
+    private void prioritize(Task task) {
+        if (task != null && task.getStartTime() != null) {
+            prioritizedTasks.add(task);
+        }
+    }
+
+    private void deprioritize(Task task) {
+        if (task != null && task.getStartTime() != null) {
+            prioritizedTasks.remove(task);
+        }
+    }
+
 }

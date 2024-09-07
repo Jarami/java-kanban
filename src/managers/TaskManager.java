@@ -56,4 +56,6 @@ public interface TaskManager {
     void removeSubtaskById(int id);
 
     List<Task> getHistory();
+
+    List<Task> getPrioritizedTasks();
 }
