@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertIterableEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static lib.TestAssertions.assertEmpty;
+import static tasks.TaskStatus.*;
 
 import managers.Managers;
 import managers.TaskManager;
@@ -11,6 +12,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.List;
 
 class EpicTest {
@@ -111,5 +114,99 @@ class EpicTest {
         assertEquals(TaskStatus.NEW, epic.getStatus());
     }
 
+    @Test
+    @DisplayName("Проверяем, что эпик корректно обновляет свой статус")
+    public void testThatEpicUpdatesStatus() {
+        Epic epic = new Epic("epic", "desc0");
+
+        List<Subtask> subtasks = List.of(
+                new Subtask("sub1", "desc1", NEW, epic, null, null),
+                new Subtask("sub1", "desc1", NEW, epic, null, null)
+        );
+
+        assertEquals(NEW, epic.getStatus());
+
+        subtasks.getFirst().setStatus(IN_PROGRESS);
+        epic.update(subtasks);
+        assertEquals(IN_PROGRESS, epic.getStatus());
+
+        subtasks.get(0).setStatus(DONE);
+        subtasks.get(1).setStatus(DONE);
+        epic.update(subtasks);
+        assertEquals(DONE, epic.getStatus());
+    }
+
+    @Test
+    @DisplayName("Проверяем, что эпик корректно обновляет свою продолжительность")
+    public void testThatEpicUpdatesDuration() {
+        Epic epic = new Epic("epic", "desc0");
+
+        List<Subtask> subtasks = List.of(
+                new Subtask("sub1", "desc1", NEW, epic, null, Duration.ofMinutes(1)),
+                new Subtask("sub2", "desc2", NEW, epic, null, null),
+                new Subtask("sub3", "desc3", NEW, epic, null, Duration.ofMinutes(2))
+        );
+
+        epic.update(subtasks);
+        assertEquals(Duration.ofMinutes(3), epic.getDuration());
+
+        subtasks.getFirst().setDuration(Duration.ofMinutes(3));
+        epic.update(subtasks);
+        assertEquals(Duration.ofMinutes(5), epic.getDuration());
+    }
+
+    @Test
+    @DisplayName("Проверяем, что эпик корректно обновляет время своего начала")
+    public void testThatEpicUpdatesStartTime() {
+        Epic epic = new Epic("epic", "desc0");
+
+        List<Subtask> subtasks = List.of(
+                new Subtask("sub1", "desc1", NEW, epic, LocalDateTime.parse("2024-01-01T00:00:00"), null),
+                new Subtask("sub2", "desc2", NEW, epic, null, null),
+                new Subtask("sub3", "desc3", NEW, epic, LocalDateTime.parse("2024-01-02T00:00:00"), null)
+        );
+
+        epic.update(subtasks);
+        assertEquals(LocalDateTime.parse("2024-01-01T00:00:00"), epic.getStartTime(),
+                String.format("Время начала должно быть 2024-01-01T00:00:00, а не %s", epic.getStartTime())
+        );
+
+        subtasks.getFirst().setStartTime(LocalDateTime.parse("2024-01-03T00:00:00"));
+        epic.update(subtasks);
+        assertEquals(LocalDateTime.parse("2024-01-02T00:00:00"), epic.getStartTime(),
+                String.format("Время начала должно быть 2024-01-02T00:00:00, а не %s", epic.getStartTime())
+        );
+    }
+
+    @Test
+    @DisplayName("Проверяем, что эпик корректно обновляет время своего начала")
+    public void testThatEpicUpdatesEndTime() {
+        Epic epic = new Epic("epic", "desc0");
+
+        List<Subtask> subtasks = List.of(
+                new Subtask("sub1", "desc1", NEW, epic,
+                        LocalDateTime.parse("2024-01-01T00:00:00"), Duration.ofHours(12)),
+                new Subtask("sub2", "desc2", NEW, epic, null, null),
+                new Subtask("sub3", "desc3", NEW, epic,
+                        LocalDateTime.parse("2024-01-02T00:00:00"), Duration.ofHours(12))
+        );
+
+        epic.update(subtasks);
+        assertEquals(LocalDateTime.parse("2024-01-02T12:00:00"), epic.getEndTime(),
+                String.format("Время окончания должно быть 2024-01-02T12:00:00, а не %s", epic.getEndTime())
+        );
+
+        subtasks.getFirst().setStartTime(LocalDateTime.parse("2024-01-03T00:00:00"));
+        epic.update(subtasks);
+        assertEquals(LocalDateTime.parse("2024-01-03T12:00:00"), epic.getEndTime(),
+                String.format("Время окончания должно быть 2024-01-03T12:00:00, а не %s", epic.getEndTime())
+        );
+
+        subtasks.getFirst().setDuration(Duration.ofHours(24));
+        epic.update(subtasks);
+        assertEquals(LocalDateTime.parse("2024-01-04T00:00:00"), epic.getEndTime(),
+                String.format("Время окончания должно быть 2024-01-04T00:00:00, а не %s", epic.getEndTime())
+        );
+    }
 
 }

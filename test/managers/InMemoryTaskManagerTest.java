@@ -149,7 +149,7 @@ class InMemoryTaskManagerTest {
         }
 
         @Test
-        @DisplayName("статус у эпика с подзадачами будет NEW")
+        @DisplayName("статус у нового эпика с подзадачами будет NEW")
         public void testThatEpicWithSubtasksIsNewAfterSaving() {
             Epic epic = createAndSaveEpicWithSubtasks(2);
 
@@ -463,6 +463,76 @@ class InMemoryTaskManagerTest {
 
             assertEquals(DONE, epic.getStatus(),
                     String.format("статус эпика должен быть DONE, а не %s", epic.getStatus()));
+        }
+
+        @Test
+        @DisplayName("подзадач у их эпика, его продолжительность обновляется")
+        public void testThatEpicDurationUpdatedAfterSubtaskUpdate() {
+
+            Epic epic = createAndSaveEpic("epic;desc");
+            List<Subtask> subs = List.of(
+                    createAndSaveSubtask("sub1;desc1;NEW;" + epic.getId() + ";null;60"),
+                    createAndSaveSubtask("sub2;desc2;NEW;" + epic.getId() + ";null;120")
+            );
+
+            assertEquals(Duration.ofMinutes(180), epic.getDuration(), String.format(
+                    "продолжительность должна быть %s, а не %s", Duration.ofMinutes(180), epic.getDuration()));
+
+            subs.getFirst().setDuration(Duration.ofMinutes(30));
+            manager.updateSubtask(subs.getFirst());
+
+            assertEquals(Duration.ofMinutes(150), epic.getDuration(), String.format(
+                    "продолжительность должна быть %s, а не %s", Duration.ofMinutes(150), epic.getDuration()));
+        }
+
+        @Test
+        @DisplayName("подзадач у их эпика, его начало обновляется")
+        public void testThatEpicStartTimeUpdatedAfterSubtaskUpdate() {
+
+            Epic epic = createAndSaveEpic("epic;desc");
+            List<Subtask> subs = List.of(
+                    createAndSaveSubtask("sub1;desc1;NEW;" + epic.getId() + ";2024-01-01 00:00:00;60"),
+                    createAndSaveSubtask("sub2;desc2;NEW;" + epic.getId() + ";2024-01-02 00:00:00;null"),
+                    createAndSaveSubtask("sub3;desc3;NEW;" + epic.getId() + ";null;120"),
+                    createAndSaveSubtask("sub4;desc4;NEW;" + epic.getId() + ";2024-01-03 01:00:00;120")
+            );
+
+            assertEquals(parseTime("2024-01-01 00:00:00"), epic.getStartTime(),
+                    "начало должно быть 2024-01-01 00:00:00, а не " + epic.getStartTime());
+
+            subs.getFirst().setStartTime(parseTime("2024-01-02 00:00:00"));
+            manager.updateSubtask(subs.getFirst());
+
+            assertEquals(parseTime("2024-01-02 00:00:00"), epic.getStartTime(),
+                    "начало должно быть 2024-01-02 00:00:00, а не " + epic.getStartTime());
+        }
+
+        @Test
+        @DisplayName("подзадач у их эпика, его окончание обновляется")
+        public void testThatEpicEndTimeUpdatedAfterSubtaskUpdate() {
+
+            Epic epic = createAndSaveEpic("epic;desc");
+            List<Subtask> subs = List.of(
+                    createAndSaveSubtask("sub1;desc1;NEW;" + epic.getId() + ";2024-01-01 00:00:00;60"),
+                    createAndSaveSubtask("sub2;desc2;NEW;" + epic.getId() + ";2024-01-02 00:00:00;null"),
+                    createAndSaveSubtask("sub3;desc3;NEW;" + epic.getId() + ";null;120"),
+                    createAndSaveSubtask("sub4;desc4;NEW;" + epic.getId() + ";2024-01-03 01:00:00;120")
+            );
+
+            assertEquals(parseTime("2024-01-03 03:00:00"), epic.getEndTime(),
+                    "начало должно быть 2024-01-03 03:00:00, а не " + epic.getEndTime());
+
+            subs.getLast().setStartTime(parseTime("2024-01-04 00:00:00"));
+            manager.updateSubtask(subs.getLast());
+
+            assertEquals(parseTime("2024-01-04 02:00:00"), epic.getEndTime(),
+                    "начало должно быть 2024-01-04 02:00:00, а не " + epic.getEndTime());
+
+            subs.getLast().setDuration(Duration.ofMinutes(60));
+            manager.updateSubtask(subs.getLast());
+
+            assertEquals(parseTime("2024-01-04 01:00:00"), epic.getEndTime(),
+                    "начало должно быть 2024-01-04 01:00:00, а не " + epic.getEndTime());
         }
     }
 
@@ -894,6 +964,12 @@ class InMemoryTaskManagerTest {
         return epic;
     }
 
+    private Epic createAndSaveEpic(String formattedEpic) {
+        Epic epic = createEpic(formattedEpic);
+        manager.saveEpic(epic);
+        return epic;
+    }
+
     private Epic createAndSaveEpicWithSubtasks(int subtaskCount) {
 
         Epic epic = createAndSaveEpic();
@@ -912,13 +988,46 @@ class InMemoryTaskManagerTest {
         return sub;
     }
 
+    private Subtask createAndSaveSubtask(String formattedSubtask) {
+        Subtask sub = createSubtask(formattedSubtask);
+        manager.saveSubtask(sub);
+        return sub;
+    }
+
     private Subtask createAndSaveSubtask(TaskStatus status, Epic epic) {
         Subtask sub = new Subtask("sub", "desc of sub", status, epic, null, null);
         manager.saveSubtask(sub);
         return sub;
     }
 
+    private Epic createEpic(String formattedEpic) {
+        String[] chunks = formattedEpic.split(";");
+        return new Epic(
+                chunks[0], // name
+                chunks[1] // description
+        );
+    }
+
+    private Subtask createSubtask(String formattedSubtask) {
+        String[] chunks = formattedSubtask.split(";");
+        return new Subtask(
+                null, // id
+                chunks[0], // name
+                chunks[1], // description
+                TaskStatus.valueOf(chunks[2]), // status
+                Integer.parseInt(chunks[3]), // epicId
+                parseTime(chunks[4]), // startTime
+                parseDuration(chunks[5]) // duration
+        );
+    }
+
     private LocalDateTime parseTime(String formattedTime) {
         return formattedTime.equals("null") ? null : LocalDateTime.parse(formattedTime, DATE_TIME_FORMATTER);
     }
+
+    private Duration parseDuration(String formattedDuration) {
+        return formattedDuration.equals("null") ? null : Duration.ofMinutes(Long.parseLong(formattedDuration));
+    }
+
+
 }

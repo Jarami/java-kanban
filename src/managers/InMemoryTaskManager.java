@@ -102,7 +102,7 @@ public class InMemoryTaskManager implements TaskManager {
 
             // добавляем id подзадачи эпику
             epic.addSubtaskIdIfAbsent(subtask);
-            updateEpicStatus(epic);
+            updateEpicProperties(epic);
 
             System.out.println("subtask created: " + subtask);
 
@@ -187,7 +187,7 @@ public class InMemoryTaskManager implements TaskManager {
             return;
         }
         epicRepo.save(epic);
-        updateEpicStatus(epic);
+        updateEpicProperties(epic);
     }
 
     // При обновлении подзадачи нужно обновить родительский эпик
@@ -215,7 +215,7 @@ public class InMemoryTaskManager implements TaskManager {
         }
 
         subtaskRepo.save(subtask);
-        updateEpicStatus(epic);
+        updateEpicProperties(epic);
     }
 
     // Удаление
@@ -262,7 +262,7 @@ public class InMemoryTaskManager implements TaskManager {
 
         for (Epic epic : epicRepo.findAll()) {
             epic.removeSubtasks();
-            updateEpicStatus(epic);
+            updateEpicProperties(epic);
         }
     }
 
@@ -277,7 +277,7 @@ public class InMemoryTaskManager implements TaskManager {
                 historyManager.remove(id);
                 subtaskRepo.deleteById(id);
                 epic.removeSubtask(subtask);
-                updateEpicStatus(epic);
+                updateEpicProperties(epic);
             }
         }
     }
@@ -287,23 +287,8 @@ public class InMemoryTaskManager implements TaskManager {
         return historyManager.getHistory();
     }
 
-    private TaskStatus getEpicStatus(List<Subtask> subtasks) {
-
-        boolean areAllSubsNew = true;
-        boolean areAllSubsDone = true;
-
-        for (Subtask sub : subtasks) {
-            if (!sub.getStatus().equals(NEW)) areAllSubsNew = false;
-            if (!sub.getStatus().equals(DONE)) areAllSubsDone = false;
-        }
-
-        if (areAllSubsNew) return NEW;
-        if (areAllSubsDone) return DONE;
-        return IN_PROGRESS;
-    }
-
-    private void updateEpicStatus(Epic epic) {
+    private void updateEpicProperties(Epic epic) {
         List<Subtask> subtasks = getSubtasksOfEpic(epic);
-        epic.setStatus(getEpicStatus(subtasks));
+        epic.update(subtasks);
     }
 }
