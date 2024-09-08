@@ -6,6 +6,7 @@ import tasks.Epic;
 import tasks.Subtask;
 import tasks.Task;
 import tasks.TaskStatus;
+import util.Tasks;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
@@ -119,7 +120,7 @@ class InMemoryTaskManagerTest {
         }
 
         @Test
-        @DisplayName("подзадача не сохраняется, если duration не положителный")
+        @DisplayName("подзадача не сохраняется, если duration не положительный")
         public void testThatManagerDoesNotSaveSubtaskWithNonPositiveDuration(){
             Epic epic = new Epic("epic", "desc");
             manager.saveEpic(epic);
@@ -160,12 +161,12 @@ class InMemoryTaskManagerTest {
         @DisplayName("задачи и подзадачи возвращаются в getPrioritizedTasks")
         public void testThatTasksAndSubtasksArePrioritized() {
             // name;description;status;startTime;duration
-            Task task1 = createAndSaveTask("task;desc1;NEW;2024-01-10 01:02:03;123");
-            Task task2 = createAndSaveTask("task;desc2;NEW;2024-01-09 02:03:04;234");
+            Task task1 = createAndSaveTask("task1;desc1;NEW;2024-01-10 01:02:03;123");
+            Task task2 = createAndSaveTask("task2;desc2;NEW;2024-01-09 02:03:04;234");
 
             // name;description
-            Epic epic1 = createAndSaveEpic("epic;desc3");
-            Epic epic2 = createAndSaveEpic("epic;desc4");
+            Epic epic1 = createAndSaveEpic("epic1;desc3");
+            Epic epic2 = createAndSaveEpic("epic2;desc4");
 
             // name;description;status;epicId;startTime;duration
             Subtask sub1 = createAndSaveSubtask("sub1;desc5;NEW;" + epic1.getId() + ";2024-01-08 03:04:05;345");
@@ -176,6 +177,106 @@ class InMemoryTaskManagerTest {
             List<Task> expectedTasks = List.of(sub2, sub1, task2, task1);
 
             assertIterableEquals(expectedTasks, actualTasks);
+        }
+
+        @Test
+        @DisplayName("непересекающихся задач все ОК")
+        public void testThatNonInterceptedTasksAreSaved() {
+            // name;description;status;startTime;duration
+            Task task1 = createAndSaveTask("task1;desc1;NEW;2024-01-10 01:02:03;123");
+            Task task2 = createAndSaveTask("task2;desc2;NEW;2024-01-09 02:03:04;234");
+
+            // name;description
+            Epic epic1 = createAndSaveEpic("epic1;desc3");
+            Epic epic2 = createAndSaveEpic("epic2;desc4");
+
+            // name;description;status;epicId;startTime;duration
+            Subtask sub1 = createAndSaveSubtask("sub1;desc5;NEW;" + epic1.getId() + ";2024-01-08 03:04:05;345");
+            Subtask sub2 = createAndSaveSubtask("sub2;desc6;NEW;" + epic1.getId() + ";2024-01-07 04:05:06;456");
+            Subtask sub3 = createAndSaveSubtask("sub3;desc7;NEW;" + epic1.getId() + ";2024-01-06 05:06:07;567");
+
+            List<Task> actualTasks = manager.getTasks();
+            List<Task> expectedTasks = List.of(task1, task2);
+
+            assertIterableEquals(expectedTasks, actualTasks, "задачи должны сохраняться");
+
+            List<Epic> actualEpics = manager.getEpics();
+            List<Epic> expectedEpics = List.of(epic1, epic2);
+
+            assertIterableEquals(expectedEpics, actualEpics, "эпики должны сохраняться");
+
+            List<Subtask> actualSubtasks = manager.getSubtasks();
+            List<Subtask> expectedSubtasks = List.of(sub1, sub2, sub3);
+
+            assertIterableEquals(expectedSubtasks, actualSubtasks, "подзадачи должны сохраняться");
+        }
+
+        @Test
+        @DisplayName("если задача пересекается с другой задачей, то она не сохраняется")
+        public void testThatTaskInterceptedWithSomeSubtaskIsNotSaved() {
+            // name;description;status;startTime;duration
+            Task task = createAndSaveTask("task1;desc1;NEW;2024-01-10 01:02:03;123");
+            assertThrows(ManagerSaveException.class, () -> {
+                createAndSaveTask("task2;desc2;NEW;2024-01-10 02:03:04;234");
+            });
+
+            assertIterableEquals(List.of(task), manager.getTasks());
+        }
+
+        @Test
+        @DisplayName("если задача пересекается с подзадачей, то задача не сохраняется")
+        public void testThatTaskInterceptedWithOtherTaskIsNotSaved() {
+            // name;description
+            Epic epic1 = createAndSaveEpic("epic1;desc3");
+
+            // name;description;status;epicId;startTime;duration
+            Subtask sub1 = createAndSaveSubtask("sub1;desc5;NEW;" + epic1.getId() + ";2024-01-08 03:04:05;345");
+
+            // name;description;status;startTime;duration
+            assertThrows(ManagerSaveException.class, () -> {
+                createAndSaveTask("task2;desc2;NEW;2024-01-08 03:04:05;234");
+            });
+
+            assertEmpty(manager.getTasks());
+            assertIterableEquals(List.of(epic1), manager.getEpics());
+            assertIterableEquals(List.of(sub1), manager.getSubtasks());
+        }
+
+        @Test
+        @DisplayName("если подзадача пересекается с другой подзадачей, то она не сохраняется")
+        public void testThatSubtaskInterceptedWithSomeSubtaskIsNotSaved() {
+
+            // name;description
+            Epic epic1 = createAndSaveEpic("epic1;desc1");
+            Epic epic2 = createAndSaveEpic("epic2;desc2");
+
+            // name;description;status;epicId;startTime;duration
+            Subtask sub1 = createAndSaveSubtask("sub1;desc3;NEW;" + epic1.getId() + ";2024-01-08 03:04:05;345");
+
+            assertThrows(ManagerSaveException.class, () -> {
+                createAndSaveSubtask("sub2;desc4;NEW;" + epic2.getId() + ";2024-01-08 04:05:06;234");
+            });
+
+            assertIterableEquals(List.of(epic1, epic2), manager.getEpics());
+            assertIterableEquals(List.of(sub1), manager.getSubtasks());
+        }
+
+        @Test
+        @DisplayName("если подзадача пересекается с задачей, то подзадача не сохраняется")
+        public void testThatSubtaskInterceptedWithSomeTaskIsNotSaved() {
+            // name;description;status;startTime;duration
+            Task task = createAndSaveTask("task1;desc1;NEW;2024-01-08 03:04:05;234");
+
+            // name;description
+            Epic epic = createAndSaveEpic("epic1;desc2");
+
+            assertThrows(ManagerSaveException.class, () -> {
+                // name;description;status;epicId;startTime;duration
+                createAndSaveSubtask("sub1;desc3;NEW;" + epic.getId() + ";2024-01-08 04:05:06;345");
+            });
+
+            assertIterableEquals(List.of(task), manager.getTasks());
+            assertEmpty(manager.getSubtasks());
         }
     }
 
@@ -438,7 +539,8 @@ class InMemoryTaskManagerTest {
 
             Epic newEpic = createAndSaveEpic();
 
-            Subtask newSub = new Subtask(sub.getId(), sub.getName(), sub.getDescription(), sub.getStatus(), newEpic, null, null);
+            Subtask newSub = new Subtask(sub.getId(), sub.getName(), sub.getDescription(), sub.getStatus(), newEpic,
+                    null, null);
             manager.updateSubtask(newSub);
 
             Subtask actualSub = manager.getSubtaskById(sub.getId());
@@ -522,8 +624,9 @@ class InMemoryTaskManagerTest {
             assertEquals(parseTime("2024-01-01 00:00:00"), epic.getStartTime(),
                     "начало должно быть 2024-01-01 00:00:00, а не " + epic.getStartTime());
 
-            subs.getFirst().setStartTime(parseTime("2024-01-02 00:00:00"));
-            manager.updateSubtask(subs.getFirst());
+            Subtask newSub = Tasks.copy(subs.getFirst());
+            newSub.setStartTime(parseTime("2024-01-02 00:00:00"));
+            manager.updateSubtask(newSub);
 
             assertEquals(parseTime("2024-01-02 00:00:00"), epic.getStartTime(),
                     "начало должно быть 2024-01-02 00:00:00, а не " + epic.getStartTime());
@@ -544,14 +647,16 @@ class InMemoryTaskManagerTest {
             assertEquals(parseTime("2024-01-03 03:00:00"), epic.getEndTime(),
                     "начало должно быть 2024-01-03 03:00:00, а не " + epic.getEndTime());
 
-            subs.getLast().setStartTime(parseTime("2024-01-04 00:00:00"));
-            manager.updateSubtask(subs.getLast());
+            Subtask newSub = Tasks.copy(subs.getLast());
+            newSub.setStartTime(parseTime("2024-01-04 00:00:00"));
+            manager.updateSubtask(newSub);
 
             assertEquals(parseTime("2024-01-04 02:00:00"), epic.getEndTime(),
                     "начало должно быть 2024-01-04 02:00:00, а не " + epic.getEndTime());
 
-            subs.getLast().setDuration(Duration.ofMinutes(60));
-            manager.updateSubtask(subs.getLast());
+            Subtask newSub1 = Tasks.copy(newSub);
+            newSub1.setDuration(Duration.ofMinutes(60));
+            manager.updateSubtask(newSub1);
 
             assertEquals(parseTime("2024-01-04 01:00:00"), epic.getEndTime(),
                     "начало должно быть 2024-01-04 01:00:00, а не " + epic.getEndTime());
@@ -561,8 +666,8 @@ class InMemoryTaskManagerTest {
         @DisplayName("задачи и подзадачи возвращаются в getPrioritizedTasks")
         public void testThatTasksAndSubtasksAreRePrioritized() {
             // name;description;status;startTime;duration
-            Task task1 = createAndSaveTask("task;desc1;NEW;2024-01-10 01:02:03;123");
-            Task task2 = createAndSaveTask("task;desc2;NEW;2024-01-09 02:03:04;234");
+            Task task1 = createAndSaveTask("task1;desc1;NEW;2024-01-10 01:02:03;123");
+            Task task2 = createAndSaveTask("task2;desc2;NEW;2024-01-09 02:03:04;234");
 
             // name;description
             Epic epic1 = createAndSaveEpic("epic;desc3");
@@ -573,22 +678,63 @@ class InMemoryTaskManagerTest {
             Subtask sub2 = createAndSaveSubtask("sub2;desc6;NEW;" + epic1.getId() + ";2024-01-07 04:05:06;456");
             Subtask sub3 = createAndSaveSubtask("sub3;desc7;NEW;" + epic1.getId() + ";null;456");
 
-            Subtask newSub2 = new Subtask(sub2.getId(), sub2.getName(), sub2.getDescription(), sub2.getStatus(),
-                    sub2.getEpicId(), parseTime("2024-01-08 10:00:00"), sub2.getDuration());
+            Subtask newSub2 = Tasks.copy(sub2);
+            newSub2.setStartTime(parseTime("2024-01-08 10:00:00"));
             manager.updateSubtask(newSub2);
 
-            Subtask newSub3 = new Subtask(sub3.getId(), sub3.getName(), sub3.getDescription(), sub3.getStatus(),
-                    sub3.getEpicId(), parseTime("2024-01-06 05:06:07"), sub3.getDuration());
+            Subtask newSub3 = Tasks.copy(sub3);
+            newSub3.setStartTime(parseTime("2024-01-06 05:06:07"));
             manager.updateSubtask(newSub3);
 
-            Task newTask2 = new Task(task2.getId(), task2.getName(), task2.getDescription(), task2.getStatus(),
-                    null, task2.getDuration());
+            Task newTask2 = Tasks.copy(task2);
+            newTask2.setStartTime(null);
             manager.updateTask(newTask2);
 
             List<Task> actualTasks = manager.getPrioritizedTasks();
             List<Task> expectedTasks = List.of(sub3, sub1, sub2, task1);
 
             assertIterableEquals(expectedTasks, actualTasks);
+        }
+
+        @Test
+        @DisplayName("подзадачи, она не должна изменяться, если пересекается с другими")
+        public void testThatUpdatedTaskIsNotSavedIfItInterceptedWithOthers() {
+            // name;description;status;startTime;duration
+            Task task1 = createAndSaveTask("task1;desc1;NEW;2024-01-10 01:00:00;120");
+            Task task2 = createAndSaveTask("task2;desc2;NEW;2024-01-09 02:00:00;120");
+
+            // name;description
+            Epic epic1 = createAndSaveEpic("epic1;desc3");
+            Epic epic2 = createAndSaveEpic("epic2;desc4");
+
+            // name;description;status;epicId;startTime;duration
+            Subtask sub1 = createAndSaveSubtask("sub1;desc5;NEW;" + epic1.getId() + ";2024-01-08 03:00:00;120");
+            Subtask sub2 = createAndSaveSubtask("sub2;desc6;NEW;" + epic1.getId() + ";2024-01-07 04:00:00;120");
+            Subtask sub3 = createAndSaveSubtask("sub3;desc7;NEW;" + epic1.getId() + ";2024-01-06 05:00:00;120");
+
+            // начинает пересекаться с task2 - так нельзя
+            Task newTask1 = Tasks.copy(task1);
+            newTask1.setStartTime(parseTime("2024-01-09 03:00:00"));
+            assertThrows(ManagerSaveException.class, () -> {
+                manager.updateTask(newTask1);
+            });
+            assertTaskEquals(task1, manager.getTaskById(task1.getId()));
+
+            // начинает пересекаться с sub2 - так нельзя
+            Task newTask2 = Tasks.copy(task2);
+            newTask2.setStartTime(parseTime("2024-01-07 05:00:00"));
+            assertThrows(ManagerSaveException.class, () -> {
+                manager.updateTask(newTask2);
+            });
+            assertTaskEquals(task2, manager.getTaskById(task2.getId()));
+
+            // начинает пересекаться сама с собой - так можно
+            Task newSub3 = Tasks.copy(sub3);
+            newSub3.setStartTime(parseTime("2024-01-06 06:00:00"));
+            assertDoesNotThrow(() -> {
+                manager.updateTask(newSub3);
+            });
+            assertTaskEquals(task1, manager.getTaskById(task1.getId()));
         }
     }
 
@@ -718,6 +864,26 @@ class InMemoryTaskManagerTest {
         }
 
         @Test
+        @DisplayName("подзадачи у эпика, его начало и конец должны обновиться")
+        public void testThatEpicStartTimeUpdatedAfterSubtaskRemoval() {
+
+            // name;description
+            Epic epic = createAndSaveEpic("epic;desc");
+
+            // name;description;status;epicId;startTime;duration
+            Subtask sub1 = createAndSaveSubtask("sub1;desc5;NEW;" + epic.getId() + ";2024-01-06 00:00:00;120");
+            Subtask sub2 = createAndSaveSubtask("sub2;desc6;NEW;" + epic.getId() + ";2024-01-07 00:00:00;120");
+            Subtask sub3 = createAndSaveSubtask("sub3;desc7;NEW;" + epic.getId() + ";2024-01-08 00:00:00;120");
+
+
+            manager.removeSubtaskById(sub1.getId());
+            manager.removeSubtaskById(sub3.getId());
+
+            assertEquals(parseTime("2024-01-07 00:00:00"), epic.getStartTime());
+            assertEquals(parseTime("2024-01-07 02:00:00"), epic.getEndTime());
+        }
+
+        @Test
         @DisplayName("всех подзадач у эпика, его статус должен стать NEW")
         public void testThatEpicStatusIsNewAfterAllSubtaskRemoval() {
             Epic epic = createAndSaveEpic();
@@ -771,8 +937,8 @@ class InMemoryTaskManagerTest {
         @DisplayName("по id задачи и подзадачи возвращаются в getPrioritizedTasks")
         public void testThatTasksAndSubtasksAreRePrioritized() {
             // name;description;status;startTime;duration
-            Task task1 = createAndSaveTask("task;desc1;NEW;2024-01-10 01:02:03;123");
-            Task task2 = createAndSaveTask("task;desc2;NEW;2024-01-09 02:03:04;234");
+            Task task1 = createAndSaveTask("task1;desc1;NEW;2024-01-10 01:02:03;123");
+            Task task2 = createAndSaveTask("task2;desc2;NEW;2024-01-09 02:03:04;234");
 
             // name;description
             Epic epic1 = createAndSaveEpic("epic;desc3");
@@ -781,7 +947,7 @@ class InMemoryTaskManagerTest {
             // name;description;status;epicId;startTime;duration
             Subtask sub1 = createAndSaveSubtask("sub1;desc5;NEW;" + epic1.getId() + ";2024-01-08 03:04:05;345");
             Subtask sub2 = createAndSaveSubtask("sub2;desc6;NEW;" + epic1.getId() + ";2024-01-07 04:05:06;456");
-            Subtask sub3 = createAndSaveSubtask("sub3;desc7;NEW;" + epic1.getId() + ";2024-01-07 05:06:07;567");
+            Subtask sub3 = createAndSaveSubtask("sub3;desc7;NEW;" + epic1.getId() + ";2024-01-06 05:06:07;567");
 
             manager.removeSubtaskById(sub2.getId());
             List<Task> actualTasks = manager.getPrioritizedTasks();
@@ -800,8 +966,8 @@ class InMemoryTaskManagerTest {
         @DisplayName("всех задач в getPrioritizedTasks возвращаются только подзадачи")
         public void testThatAfterTaskRemovalOnlySubtasksArePrioritized() {
             // name;description;status;startTime;duration
-            Task task1 = createAndSaveTask("task;desc1;NEW;2024-01-10 01:02:03;123");
-            Task task2 = createAndSaveTask("task;desc2;NEW;2024-01-09 02:03:04;234");
+            Task task1 = createAndSaveTask("task1;desc1;NEW;2024-01-10 01:02:03;123");
+            Task task2 = createAndSaveTask("task2;desc2;NEW;2024-01-09 02:03:04;234");
 
             // name;description
             Epic epic1 = createAndSaveEpic("epic;desc3");
@@ -823,8 +989,8 @@ class InMemoryTaskManagerTest {
         @DisplayName("всех подзадач в getPrioritizedTasks возвращаются только задачи")
         public void testThatAfterSubtaskRemovalOnlyTasksArePrioritized() {
             // name;description;status;startTime;duration
-            Task task1 = createAndSaveTask("task;desc1;NEW;2024-01-10 01:02:03;123");
-            Task task2 = createAndSaveTask("task;desc2;NEW;2024-01-09 02:03:04;234");
+            Task task1 = createAndSaveTask("task1;desc1;NEW;2024-01-10 01:02:03;123");
+            Task task2 = createAndSaveTask("task2;desc2;NEW;2024-01-09 02:03:04;234");
 
             // name;description
             Epic epic1 = createAndSaveEpic("epic;desc3");
@@ -840,6 +1006,33 @@ class InMemoryTaskManagerTest {
             List<Task> expectedTasks = List.of(task2, task1);
 
             assertIterableEquals(expectedTasks, actualTasks);
+        }
+
+        @Test
+        @DisplayName("задачи, она уже не участвует в определении пересечений")
+        public void testThatUpdatedTaskIsNotSavedIfItInterceptedWithOthers() {
+            // name;description;status;startTime;duration
+            Task task1 = createAndSaveTask("task1;desc1;NEW;2024-01-10 01:00:00;120");
+            Task task2 = createAndSaveTask("task2;desc2;NEW;2024-01-09 02:00:00;120");
+
+            // name;description
+            Epic epic1 = createAndSaveEpic("epic1;desc3");
+            Epic epic2 = createAndSaveEpic("epic2;desc4");
+
+            // name;description;status;epicId;startTime;duration
+            Subtask sub1 = createAndSaveSubtask("sub1;desc5;NEW;" + epic1.getId() + ";2024-01-08 03:00:00;120");
+            Subtask sub2 = createAndSaveSubtask("sub2;desc6;NEW;" + epic1.getId() + ";2024-01-07 04:00:00;120");
+            Subtask sub3 = createAndSaveSubtask("sub3;desc7;NEW;" + epic1.getId() + ";2024-01-06 05:00:00;120");
+
+            manager.removeTaskById(task2.getId());
+
+            // начинает пересекаться с task2 - можно, так как задача task2 удалена
+            Task newTask1 = Tasks.copy(task1);
+            newTask1.setStartTime(parseTime("2024-01-09 03:00:00"));
+            assertDoesNotThrow(() -> {
+                manager.updateTask(newTask1);
+            });
+            assertTaskEquals(newTask1, manager.getTaskById(task1.getId()));
         }
     }
 

@@ -7,6 +7,8 @@ import tasks.Epic;
 import tasks.Subtask;
 import tasks.Task;
 
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.*;
 
 public class InMemoryTaskManager implements TaskManager {
@@ -40,7 +42,11 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public int saveTask(Task task) {
 
-        checkTaskBeforeSaving(task);
+        checkDurationBeforeSaving(task);
+
+        if (isIntercepted(task)) {
+            throw new ManagerSaveException("Задача не должна пересекаться с другими!");
+        }
 
         if (task.getId() == null) {
             int id = generateTaskId();
@@ -60,7 +66,7 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public int saveEpic(Epic epic) {
 
-        checkTaskBeforeSaving(epic);
+        checkDurationBeforeSaving(epic);
 
         if (epic.getId() == null) {
             int id = generateTaskId();
@@ -79,7 +85,11 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public int saveSubtask(Subtask subtask) {
 
-        checkTaskBeforeSaving(subtask);
+        checkDurationBeforeSaving(subtask);
+
+        if (isIntercepted(subtask)) {
+            throw new ManagerSaveException("Подзадача не должна пересекаться с другими!");
+        }
 
         Epic epic = getEpicOfSubtask(subtask);
         if (epic != null) {
@@ -170,6 +180,10 @@ public class InMemoryTaskManager implements TaskManager {
             return;
         }
 
+        if (isIntercepted(task)) {
+            throw new ManagerSaveException("Подзадача не должна пересекаться с другими!");
+        }
+
         deprioritize(taskRepo.findById(task.getId()));
         prioritize(task);
 
@@ -209,6 +223,10 @@ public class InMemoryTaskManager implements TaskManager {
             System.out.println("Подзадача не может изменить свой эпик! Предыдущий эпик " + oldEpic +
                     ", новый " + epic);
             return;
+        }
+
+        if (isIntercepted(subtask)) {
+            throw new ManagerSaveException("Подзадача не должна пересекаться с другими!");
         }
 
         deprioritize(subtaskRepo.findById(subtask.getId()));
@@ -309,10 +327,38 @@ public class InMemoryTaskManager implements TaskManager {
         return new ArrayList<>(prioritizedTasks);
     }
 
-    private void checkTaskBeforeSaving(Task task) {
+    private void checkDurationBeforeSaving(Task task) {
         if (task.getDuration() != null && task.getDuration().toMinutes() < 0) {
             throw new ManagerSaveException("Продолжительность выполнения задачи должна быть положительной!");
         }
+    }
+
+    private boolean isIntercepted(Task task) {
+        if (task.getDuration() == null || task.getStartTime() == null) {
+            return false;
+        }
+
+        LocalDateTime startTime = task.getStartTime();
+        LocalDateTime endTime = startTime.plus(task.getDuration());
+
+        Optional<Task> maybeTask = getPrioritizedTasks().stream()
+                .filter(t -> {
+                    if (t.equals(task)) {
+                        return false;
+                    }
+
+                    if (t.getDuration() == null) {
+                        return false;
+                    }
+
+                    LocalDateTime startTime1 = t.getStartTime();
+                    LocalDateTime endTime1 = startTime1.plus(t.getDuration());
+
+                    return startTime1.isBefore(endTime) && endTime1.isAfter(startTime);
+                })
+                .findAny();
+
+        return maybeTask.isPresent();
     }
 
     private void updateEpicProperties(Epic epic) {

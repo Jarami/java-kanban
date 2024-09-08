@@ -60,4 +60,19 @@ public class Tasks {
             }
         }
     }
+
+    public static Task copy(Task task) {
+        return new Task(task.getId(), task.getName(), task.getDescription(), task.getStatus(), task.getStartTime(),
+                task.getDuration());
+    }
+
+    public static Epic copy(Epic epic) {
+        return new Epic(epic.getId(), epic.getName(), epic.getDescription(), epic.getStatus(), epic.getStartTime(),
+                epic.getDuration());
+    }
+
+    public static Subtask copy(Subtask sub) {
+        return new Subtask(sub.getId(), sub.getName(), sub.getDescription(), sub.getStatus(), sub.getEpicId(),
+                sub.getStartTime(), sub.getDuration());
+    }
 }
