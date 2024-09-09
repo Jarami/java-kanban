@@ -5,6 +5,7 @@ import tasks.Task;
 import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Optional;
 
 public class InMemoryRepo<T extends Task> implements TaskRepo<T> {
     private final Map<Integer, T> repo = new LinkedHashMap<>();
@@ -15,8 +16,9 @@ public class InMemoryRepo<T extends Task> implements TaskRepo<T> {
     }
 
     @Override
-    public T findById(Integer taskId) {
-        return repo.get(taskId);
+    public Optional<T> findById(Integer taskId) {
+        T task = repo.get(taskId);
+        return task == null ? Optional.empty() : Optional.of(task);
     }
 
     @Override

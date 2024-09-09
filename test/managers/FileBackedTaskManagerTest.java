@@ -56,13 +56,13 @@ class FileBackedTaskManagerTest extends TaskManagerTest<FileBackedTaskManager>{
 
         TaskManager manager2 = FileBackedTaskManager.loadFromFile(taskFile);
 
-        assertTaskEquals(task1, manager2.getTaskById(task1.getId()));
-        assertTaskEquals(task2, manager2.getTaskById(task2.getId()));
-        assertEpicEquals(epic1, manager2.getEpicById(epic1.getId()));
-        assertEpicEquals(epic2, manager2.getEpicById(epic2.getId()));
-        assertSubtaskEquals(sub1, manager2.getSubtaskById(sub1.getId()));
-        assertSubtaskEquals(sub2, manager2.getSubtaskById(sub2.getId()));
-        assertSubtaskEquals(sub3, manager2.getSubtaskById(sub3.getId()));
+        assertTaskEquals(task1, manager2.getTaskById(task1.getId()).orElseThrow());
+        assertTaskEquals(task2, manager2.getTaskById(task2.getId()).orElseThrow());
+        assertEpicEquals(epic1, manager2.getEpicById(epic1.getId()).orElseThrow());
+        assertEpicEquals(epic2, manager2.getEpicById(epic2.getId()).orElseThrow());
+        assertSubtaskEquals(sub1, manager2.getSubtaskById(sub1.getId()).orElseThrow());
+        assertSubtaskEquals(sub2, manager2.getSubtaskById(sub2.getId()).orElseThrow());
+        assertSubtaskEquals(sub3, manager2.getSubtaskById(sub3.getId()).orElseThrow());
         assertEquals(7, manager2.getTasks().size() + manager2.getEpics().size()
                 + manager2.getSubtasks().size());
     }

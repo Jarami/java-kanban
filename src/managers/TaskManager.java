@@ -5,6 +5,7 @@ import tasks.Subtask;
 import tasks.Task;
 
 import java.util.List;
+import java.util.Optional;
 
 public interface TaskManager {
     // Сохранение
@@ -17,15 +18,15 @@ public interface TaskManager {
     // Получение
     List<Task> getTasks();
 
-    Task getTaskById(int id);
+    Optional<Task> getTaskById(int id);
 
     List<Epic> getEpics();
 
-    Epic getEpicById(int id);
+    Optional<Epic> getEpicById(int id);
 
     List<Subtask> getSubtasks();
 
-    Subtask getSubtaskById(int id);
+    Optional<Subtask> getSubtaskById(int id);
 
     List<Subtask> getSubtasksOfEpic(Epic epic);
 

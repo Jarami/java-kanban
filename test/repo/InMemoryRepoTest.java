@@ -26,7 +26,7 @@ class InMemoryRepoTest {
     void save() {
         Task task = new Task(1, "task", "desc", null, null);
         repo.save(task);
-        assertEquals(task, repo.findById(1));
+        assertEquals(task, repo.findById(1).orElseThrow());
     }
 
     @Test
@@ -52,8 +52,8 @@ class InMemoryRepoTest {
         repo.save(task1);
         repo.save(task2);
 
-        assertEquals(task1, repo.findById(task1.getId()));
-        assertEquals(task2, repo.findById(task2.getId()));
+        assertEquals(task1, repo.findById(task1.getId()).orElseThrow());
+        assertEquals(task2, repo.findById(task2.getId()).orElseThrow());
     }
 
     @Test

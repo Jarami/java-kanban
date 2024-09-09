@@ -121,12 +121,10 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     @Override
-    public Task getTaskById(int id) {
-        Task task = taskRepo.findById(id);
-        if (task != null) {
-            historyManager.add(task);
-        }
-        return task;
+    public Optional<Task> getTaskById(int id) {
+        Optional<Task> maybeTask = taskRepo.findById(id);
+        maybeTask.ifPresent(historyManager::add);
+        return maybeTask;
     }
 
     @Override
@@ -135,12 +133,10 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     @Override
-    public Epic getEpicById(int id) {
-        Epic epic = epicRepo.findById(id);
-        if (epic != null) {
-            historyManager.add(epic);
-        }
-        return epic;
+    public Optional<Epic> getEpicById(int id) {
+        Optional<Epic> maybeEpic = epicRepo.findById(id);
+        maybeEpic.ifPresent(historyManager::add);
+        return maybeEpic;
     }
 
     @Override
@@ -149,30 +145,29 @@ public class InMemoryTaskManager implements TaskManager {
     }
 
     @Override
-    public Subtask getSubtaskById(int id) {
-        Subtask subtask = subtaskRepo.findById(id);
-        if (subtask != null) {
-            historyManager.add(subtask);
-        }
-        return subtask;
+    public Optional<Subtask> getSubtaskById(int id) {
+        Optional<Subtask> maybeSub = subtaskRepo.findById(id);
+        maybeSub.ifPresent(historyManager::add);
+        return maybeSub;
     }
 
     @Override
     public List<Subtask> getSubtasksOfEpic(Epic epic) {
         List<Subtask> subtasks = new ArrayList<>();
-        epic.getSubtasksId().forEach(subtaskId -> subtasks.add(subtaskRepo.findById(subtaskId)));
+        epic.getSubtasksId().forEach(subtaskId ->
+            subtaskRepo.findById(subtaskId).ifPresent(subtasks::add));
         return subtasks;
     }
 
     @Override
     public Epic getEpicOfSubtask(Subtask subtask) {
-        return epicRepo.findById(subtask.getEpicId());
+        return epicRepo.findById(subtask.getEpicId()).orElse(null);
     }
 
     // Обновление
     @Override
     public void updateTask(Task task) {
-        if (task.getId() == null || taskRepo.findById(task.getId()) == null) {
+        if (task.getId() == null || taskRepo.findById(task.getId()).isEmpty()) {
             System.out.println("Обновить можно только ранее сохраненную задачу");
             return;
         }
@@ -181,7 +176,7 @@ public class InMemoryTaskManager implements TaskManager {
             throw new ManagerSaveException("Подзадача не должна пересекаться с другими!");
         }
 
-        deprioritize(taskRepo.findById(task.getId()));
+        taskRepo.findById(task.getId()).ifPresent(this::deprioritize);
         prioritize(task);
 
         taskRepo.save(task);
@@ -190,7 +185,7 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public void updateEpic(Epic epic) {
-        if (epic.getId() == null || epicRepo.findById(epic.getId()) == null) {
+        if (epic.getId() == null || epicRepo.findById(epic.getId()).isEmpty()) {
             System.out.println("Обновить можно только ранее сохраненный эпик");
             return;
         }
@@ -207,14 +202,14 @@ public class InMemoryTaskManager implements TaskManager {
             return;
         }
 
-        Subtask oldSubtask = subtaskRepo.findById(subtask.getId());
-        if (oldSubtask == null) {
+        Optional<Subtask> oldSubtask = subtaskRepo.findById(subtask.getId());
+        if (oldSubtask.isEmpty()) {
             System.out.println("Изменить можно только существующую подзадачу");
             return;
         }
 
         Epic epic = getEpicOfSubtask(subtask);
-        Epic oldEpic = getEpicOfSubtask(oldSubtask);
+        Epic oldEpic = getEpicOfSubtask(oldSubtask.get());
 
         if (!oldEpic.equals(epic)) {
             System.out.println("Подзадача не может изменить свой эпик! Предыдущий эпик " + oldEpic +
@@ -226,7 +221,7 @@ public class InMemoryTaskManager implements TaskManager {
             throw new ManagerSaveException("Подзадача не должна пересекаться с другими!");
         }
 
-        deprioritize(subtaskRepo.findById(subtask.getId()));
+        subtaskRepo.findById(subtask.getId()).ifPresent(this::deprioritize);
         prioritize(subtask);
 
         subtaskRepo.save(subtask);
@@ -246,12 +241,12 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public void removeTaskById(int id) {
-        Task task = taskRepo.findById(id);
-        if (task != null) {
-            deprioritize(task);
-            historyManager.remove(id);
-            taskRepo.deleteById(id);
-        }
+        taskRepo.findById(id)
+                .ifPresent(task -> {
+                    deprioritize(task);
+                    historyManager.remove(id);
+                    taskRepo.deleteById(id);
+                });
     }
 
     @Override
@@ -269,17 +264,16 @@ public class InMemoryTaskManager implements TaskManager {
     // При удалении эпика все его подзадачи тоже удаляются
     @Override
     public void removeEpicById(int id) {
-        Epic epic = epicRepo.findById(id);
 
-        if (epic != null) {
+        epicRepo.findById(id).ifPresent(epic -> {
             epic.getSubtasksId().forEach(subtaskId -> {
-                deprioritize(subtaskRepo.findById(subtaskId));
+                subtaskRepo.findById(subtaskId).ifPresent(this::deprioritize);
                 historyManager.remove(subtaskId);
                 subtaskRepo.deleteById(subtaskId);
             });
             historyManager.remove(id);
             epicRepo.deleteById(id);
-        }
+        });
     }
 
     // При удалении подзадач из хранилища также нужно удалить их у эпиков
@@ -300,9 +294,7 @@ public class InMemoryTaskManager implements TaskManager {
     // При удалении подзадачи нужно обновить родительский эпик
     @Override
     public void removeSubtaskById(int id) {
-        Subtask subtask = subtaskRepo.findById(id);
-
-        if (subtask != null) {
+        subtaskRepo.findById(id).ifPresent(subtask -> {
             Epic epic = getEpicOfSubtask(subtask);
             if (epic != null) {
                 deprioritize(subtask);
@@ -311,7 +303,7 @@ public class InMemoryTaskManager implements TaskManager {
                 epic.removeSubtask(subtask);
                 updateEpicProperties(epic);
             }
-        }
+        });
     }
 
     @Override

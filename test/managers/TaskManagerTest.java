@@ -255,7 +255,7 @@ public abstract class TaskManagerTest<T extends TaskManager> {
                     Tasks.parseTime("2024-01-01 00:00:00"), Duration.ofMinutes(123));
             manager.updateTask(newTask);
 
-            Task actualTask = manager.getTaskById(task.getId());
+            Task actualTask = manager.getTaskById(task.getId()).orElseThrow();
 
             assertTaskEquals(newTask, actualTask);
         }
@@ -275,7 +275,7 @@ public abstract class TaskManagerTest<T extends TaskManager> {
             Task task = new Task(1, "updated task", "updated desc", null, null);
             manager.updateTask(task);
 
-            assertNull(manager.getTaskById(1));
+            assertTrue(manager.getTaskById(1).isEmpty());
         }
 
         @Test
@@ -295,7 +295,7 @@ public abstract class TaskManagerTest<T extends TaskManager> {
             System.out.println(manager.getSubtasksOfEpic(epic).size());
             System.out.println(manager.getSubtasksOfEpic(newEpic).size());
 
-            Epic actEpic = manager.getEpicById(epic.getId());
+            Epic actEpic = manager.getEpicById(epic.getId()).orElseThrow();
 
             assertEpicEquals(newEpic, actEpic);
         }
@@ -315,7 +315,7 @@ public abstract class TaskManagerTest<T extends TaskManager> {
             Epic epic = new Epic(1, "updated epic", "updated epic");
             manager.updateEpic(epic);
 
-            assertNull(manager.getEpicById(1));
+            assertTrue(manager.getEpicById(1).isEmpty());
         }
 
         @Test
@@ -327,7 +327,7 @@ public abstract class TaskManagerTest<T extends TaskManager> {
             Subtask newSub = new Subtask(sub.getId(), "new sub", "new desc", DONE, epic, null, null);
             manager.updateSubtask(newSub);
 
-            Subtask actualSub = manager.getSubtaskById(sub.getId());
+            Subtask actualSub = manager.getSubtaskById(sub.getId()).orElseThrow();
             assertSubtaskEquals(newSub, actualSub);
         }
 
@@ -350,7 +350,7 @@ public abstract class TaskManagerTest<T extends TaskManager> {
 
             manager.updateSubtask(sub);
 
-            assertNull(manager.getSubtaskById(1));
+            assertTrue(manager.getSubtaskById(1).isEmpty());
         }
 
         @Test
@@ -364,7 +364,7 @@ public abstract class TaskManagerTest<T extends TaskManager> {
             Subtask newSub = new Subtask(sub.getId(), "new sub", "desc of new sub", epic, null, null);
             manager.updateSubtask(newSub);
 
-            assertNull(manager.getSubtaskById(sub.getId()));
+            assertTrue(manager.getSubtaskById(sub.getId()).isEmpty());
         }
 
         @Test
@@ -379,7 +379,7 @@ public abstract class TaskManagerTest<T extends TaskManager> {
                     null, null);
             manager.updateSubtask(newSub);
 
-            Subtask actualSub = manager.getSubtaskById(sub.getId());
+            Subtask actualSub = manager.getSubtaskById(sub.getId()).orElseThrow();
             Epic actualEpic = manager.getEpicOfSubtask(actualSub);
 
             assertEquals(epic, actualEpic);
@@ -554,7 +554,7 @@ public abstract class TaskManagerTest<T extends TaskManager> {
             assertThrows(ManagerSaveException.class, () -> {
                 manager.updateTask(newTask1);
             });
-            assertTaskEquals(task1, manager.getTaskById(task1.getId()));
+            assertTaskEquals(task1, manager.getTaskById(task1.getId()).orElseThrow());
 
             // начинает пересекаться с sub2 - так нельзя
             Task newTask2 = Tasks.copy(task2);
@@ -562,7 +562,7 @@ public abstract class TaskManagerTest<T extends TaskManager> {
             assertThrows(ManagerSaveException.class, () -> {
                 manager.updateTask(newTask2);
             });
-            assertTaskEquals(task2, manager.getTaskById(task2.getId()));
+            assertTaskEquals(task2, manager.getTaskById(task2.getId()).orElseThrow());
 
             // начинает пересекаться сама с собой - так можно
             Task newSub3 = Tasks.copy(sub3);
@@ -570,7 +570,7 @@ public abstract class TaskManagerTest<T extends TaskManager> {
             assertDoesNotThrow(() -> {
                 manager.updateTask(newSub3);
             });
-            assertTaskEquals(task1, manager.getTaskById(task1.getId()));
+            assertTaskEquals(task1, manager.getTaskById(task1.getId()).orElseThrow());
         }
     }
 
@@ -868,7 +868,7 @@ public abstract class TaskManagerTest<T extends TaskManager> {
             assertDoesNotThrow(() -> {
                 manager.updateTask(newTask1);
             });
-            assertTaskEquals(newTask1, manager.getTaskById(task1.getId()));
+            assertTaskEquals(newTask1, manager.getTaskById(task1.getId()).orElseThrow());
         }
     }
 
