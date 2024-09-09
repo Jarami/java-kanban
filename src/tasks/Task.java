@@ -76,10 +76,6 @@ public class Task {
         this.duration = duration;
     }
 
-    public void setDuration(long minutes) {
-        duration = Duration.ofMinutes(minutes);
-    }
-
     public LocalDateTime getStartTime() {
         return startTime;
     }

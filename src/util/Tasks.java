@@ -104,8 +104,12 @@ public class Tasks {
     }
 
     public static Epic copy(Epic epic) {
-        return new Epic(epic.getId(), epic.getName(), epic.getDescription(), epic.getStatus(), epic.getStartTime(),
+        Epic newEpic = new Epic(epic.getId(), epic.getName(), epic.getDescription(), epic.getStatus(), epic.getStartTime(),
                 epic.getDuration());
+
+        epic.getSubtasksId().forEach(newEpic::addSubtaskIdIfAbsent);
+
+        return newEpic;
     }
 
     public static Subtask copy(Subtask sub) {

@@ -5,7 +5,6 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Stream;
 
 import static tasks.TaskStatus.*;
 
@@ -45,6 +44,12 @@ public class Epic extends Task {
     public void addSubtaskIdIfAbsent(Subtask subtask) {
         if (!subtasksId.contains(subtask.getId())) {
             subtasksId.add(subtask.getId());
+        }
+    }
+
+    public void addSubtaskIdIfAbsent(Integer subtaskId) {
+        if (!subtasksId.contains(subtaskId)) {
+            subtasksId.add(subtaskId);
         }
     }
 
