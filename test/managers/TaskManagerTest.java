@@ -34,7 +34,7 @@ public abstract class TaskManagerTest<T extends TaskManager> {
 
         @Test
         @DisplayName("обычная задача не сохраняется, если duration не положителный")
-        public void testThatManagerDoesNotSaveTaskWithNonPositiveDuration(){
+        public void testThatManagerDoesNotSaveTaskWithNonPositiveDuration() {
             Task task = Tasks.createTask("task;desc;NEW;2024-01-01 01:02:03;-1");
             assertThrows(ManagerSaveException.class, () -> manager.saveTask(task));
         }
@@ -61,7 +61,7 @@ public abstract class TaskManagerTest<T extends TaskManager> {
 
         @Test
         @DisplayName("эпик не сохраняется, если duration неположительный")
-        public void testThatManagerDoesNotSaveEpicWithNonPositiveDuration(){
+        public void testThatManagerDoesNotSaveEpicWithNonPositiveDuration() {
             Epic epic = Tasks.createEpic("epic;desc");
             epic.setDuration(Duration.ofMinutes(-1));
             assertThrows(ManagerSaveException.class, () -> manager.saveEpic(epic));

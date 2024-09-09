@@ -87,7 +87,7 @@ public class Main {
         });
 
         Set<Integer> doubles = new HashSet<>();
-        historyStat.forEach((task, count) -> {;
+        historyStat.forEach((task, count) -> {
             if (count > 1) {
                 doubles.add(task.getId());
             }
@@ -99,7 +99,7 @@ public class Main {
 
     private static void printWatchingStat() {
         System.out.println("======== WATCHING STATS ===============");
-        watchingStat.forEach((task, count) -> {;
+        watchingStat.forEach((task, count) -> {
             System.out.println("task \"" + task.getName() + "\" has been watched " + count + " times");
         });
         System.out.println("=======================================");
