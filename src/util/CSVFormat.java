@@ -89,7 +89,7 @@ public class CSVFormat {
 
     public static String taskToString(Task task) {
         return join(task.getId(), TASK, task.getName(), task.getStatus(), task.getDescription(),
-                task.getDuration().toMinutes(), formatTime(task.getStartTime()));
+                formatDuration(task.getDuration()), formatTime(task.getStartTime()));
     }
 
     public static String taskToString(Epic epic) {
@@ -99,8 +99,7 @@ public class CSVFormat {
 
     public static String taskToString(Subtask subtask) {
         return join(subtask.getId(), SUBTASK, subtask.getName(), subtask.getStatus(), subtask.getDescription(),
-                subtask.getDuration().toMinutes(), formatTime(subtask.getStartTime()),
-                subtask.getEpicId());
+                formatDuration(subtask.getDuration()), formatTime(subtask.getStartTime()), subtask.getEpicId());
     }
 
     private static String join(Object... objects) {

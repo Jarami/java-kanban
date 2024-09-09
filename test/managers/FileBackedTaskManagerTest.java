@@ -26,7 +26,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static tasks.TaskStatus.*;
 import static tasks.TaskType.*;
 
-class FileBackedTaskManagerTest {
+class FileBackedTaskManagerTest extends TaskManagerTest<FileBackedTaskManager>{
 
     static class Suite {
         public List<Task> tasks = new ArrayList<>();
@@ -34,10 +34,8 @@ class FileBackedTaskManagerTest {
         public List<Subtask> subtasks = new ArrayList<>();
     }
 
-    public static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-
     private Path taskFile;
-    private TaskManager manager;
+//    private TaskManager manager;
 
     @BeforeEach
     public void setup() throws IOException {
@@ -270,24 +268,6 @@ class FileBackedTaskManagerTest {
                 .map(line -> line.split(CSVFormat.SEPARATOR))
                 .map(chunks -> Integer.parseInt(chunks[0]))
                 .toList();
-    }
-
-    private Task createAndSaveTask(String formattedTask) {
-        Task task = Tasks.createTask(formattedTask);
-        manager.saveTask(task);
-        return task;
-    }
-
-    private Epic createAndSaveEpic(String formattedEpic) {
-        Epic epic = Tasks.createEpic(formattedEpic);
-        manager.saveEpic(epic);
-        return epic;
-    }
-
-    private Subtask createAndSaveSubtask(String formattedSubtask) {
-        Subtask sub = Tasks.createSubtask(formattedSubtask);
-        manager.saveSubtask(sub);
-        return sub;
     }
 
     private String formatTime(String formattedTime) {
