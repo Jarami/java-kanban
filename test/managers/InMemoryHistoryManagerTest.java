@@ -22,6 +22,13 @@ class InMemoryHistoryManagerTest {
     }
 
     @Test
+    @DisplayName("получить пустую историю задач")
+    public void getEmptyHistory() {
+        List<Task> tasks = history.getHistory();
+        assertEmpty(tasks);
+    }
+
+    @Test
     @DisplayName("Добавить три разных задачи")
     public void addDifferentTasks() {
         Task task = new Task(1, "task", "task desc", null, null);
@@ -89,18 +96,49 @@ class InMemoryHistoryManagerTest {
     }
 
     @Test
-    @DisplayName("Удалить существующую задачу из истории")
-    public void givenExistingTask_whenRemove_thenGotTaskRemoved() {
+    @DisplayName("Удалить существующую задачу из начала")
+    public void givenNonEmptyHistory_whenRemoveFirst_thenGotTaskRemoved() {
         Task task1 = new Task(1, "task1", "desc1", null, null);
         Task task2 = new Task(2, "task2", "desc2", null, null);
+        Task task3 = new Task(3, "task3", "desc3", null, null);
         history.add(task1);
         history.add(task2);
+        history.add(task3);
 
         history.remove(1);
 
-        assertIterableEquals(List.of(task2), history.getHistory());
+        assertIterableEquals(List.of(task3, task2), history.getHistory());
     }
 
+    @Test
+    @DisplayName("Удалить существующую задачу с конца")
+    public void givenNonEmptyHistory_whenRemoveLast_thenGotTaskRemoved() {
+        Task task1 = new Task(1, "task1", "desc1", null, null);
+        Task task2 = new Task(2, "task2", "desc2", null, null);
+        Task task3 = new Task(3, "task3", "desc3", null, null);
+        history.add(task1);
+        history.add(task2);
+        history.add(task3);
+
+        history.remove(3);
+
+        assertIterableEquals(List.of(task2, task1), history.getHistory());
+    }
+
+    @Test
+    @DisplayName("Удалить существующую задачу из середины")
+    public void givenNonEmptyHistory_whenRemoveFromMiddle_thenGotTaskRemoved() {
+        Task task1 = new Task(1, "task1", "desc1", null, null);
+        Task task2 = new Task(2, "task2", "desc2", null, null);
+        Task task3 = new Task(3, "task3", "desc3", null, null);
+        history.add(task1);
+        history.add(task2);
+        history.add(task3);
+
+        history.remove(2);
+
+        assertIterableEquals(List.of(task3, task1), history.getHistory());
+    }
 
     @Test
     @DisplayName("Удалить несколько экземпляров существующей задачи")
