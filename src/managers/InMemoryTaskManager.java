@@ -161,9 +161,7 @@ public class InMemoryTaskManager implements TaskManager {
     @Override
     public List<Subtask> getSubtasksOfEpic(Epic epic) {
         List<Subtask> subtasks = new ArrayList<>();
-        for (Integer subtaskId : epic.getSubtasksId()) {
-            subtasks.add(subtaskRepo.findById(subtaskId));
-        }
+        epic.getSubtasksId().forEach(subtaskId -> subtasks.add(subtaskRepo.findById(subtaskId)));
         return subtasks;
     }
 
@@ -275,11 +273,11 @@ public class InMemoryTaskManager implements TaskManager {
         Epic epic = epicRepo.findById(id);
 
         if (epic != null) {
-            for (Integer subtaskId : epic.getSubtasksId()) {
+            epic.getSubtasksId().forEach(subtaskId -> {
                 deprioritize(subtaskRepo.findById(subtaskId));
                 historyManager.remove(subtaskId);
                 subtaskRepo.deleteById(subtaskId);
-            }
+            });
             historyManager.remove(id);
             epicRepo.deleteById(id);
         }
@@ -294,10 +292,10 @@ public class InMemoryTaskManager implements TaskManager {
         });
         subtaskRepo.delete();
 
-        for (Epic epic : epicRepo.findAll()) {
+        epicRepo.findAll().forEach(epic -> {;
             epic.removeSubtasks();
             updateEpicProperties(epic);
-        }
+        });
     }
 
     // При удалении подзадачи нужно обновить родительский эпик

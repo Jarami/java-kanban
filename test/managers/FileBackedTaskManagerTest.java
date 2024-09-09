@@ -7,6 +7,7 @@ import tasks.Subtask;
 import tasks.Task;
 import tasks.TaskStatus;
 import util.CSVFormat;
+import util.Tasks;
 
 import java.io.FileWriter;
 import java.io.IOException;
@@ -79,7 +80,7 @@ class FileBackedTaskManagerTest {
         TaskManager manager2 = FileBackedTaskManager.loadFromFile(taskFile);
         Set<Integer> ids = manager2.getTasks().stream().map(Task::getId).collect(Collectors.toSet());
 
-        Task newTask = createTask("task;desc;NEW;2024-01-03 03:04:05;345");
+        Task newTask = Tasks.createTask("task;desc;NEW;2024-01-03 03:04:05;345");
         manager2.saveTask(newTask);
 
         assertFalse(ids.contains(newTask.getId()));
@@ -96,7 +97,7 @@ class FileBackedTaskManagerTest {
     }
 
     @Test
-    void testThatManagerSavesTaskToFile() throws IOException {
+    public void testThatManagerSavesTaskToFile() throws IOException {
         Task task = createAndSaveTask("task;desc;NEW;2024-01-01 00:00:00;123");
 
         String line = readLastLine();
@@ -106,7 +107,7 @@ class FileBackedTaskManagerTest {
     }
 
     @Test
-    void testThatManagerSavesEpicToFile() throws IOException {
+    public void testThatManagerSavesEpicToFile() throws IOException {
         Epic epic = createAndSaveEpic("epic;desc");
 
         String line = readLastLine();
@@ -115,7 +116,7 @@ class FileBackedTaskManagerTest {
     }
 
     @Test
-    void testThatManagerSavesSubtaskToFile() throws IOException {
+    public void testThatManagerSavesSubtaskToFile() throws IOException {
         Epic epic = createAndSaveEpic("epic;desc");
         Subtask sub = createAndSaveSubtask("sub;desc1;NEW;" + epic.getId() + ";2024-01-01 01:02:03;123");
 
@@ -125,7 +126,7 @@ class FileBackedTaskManagerTest {
     }
 
     @Test
-    void testThatManagerUpdatesTaskInFile() throws IOException {
+    public void testThatManagerUpdatesTaskInFile() throws IOException {
         Task task = createAndSaveTask("task;desc;NEW;2024-01-01 01:02:03;123");
 
         task.setName("new task");
@@ -136,7 +137,7 @@ class FileBackedTaskManagerTest {
     }
 
     @Test
-    void testThatManagerUpdatesEpicInFile() throws IOException {
+    public void testThatManagerUpdatesEpicInFile() throws IOException {
         Epic epic = createAndSaveEpic("epic;desc");
 
         epic.setName("new epic");
@@ -147,7 +148,7 @@ class FileBackedTaskManagerTest {
     }
 
     @Test
-    void testThatManagerUpdatesSubtaskToFile() throws IOException {
+    public void testThatManagerUpdatesSubtaskToFile() throws IOException {
         Epic epic = createAndSaveEpic("epic;desc");
         Subtask sub = createAndSaveSubtask("sub;desc1;NEW;" + epic.getId() + ";2024-01-01 01:02:03;123");
 
@@ -159,7 +160,7 @@ class FileBackedTaskManagerTest {
     }
 
     @Test
-    void testThatManagerRemovesTasksFromFile() throws IOException {
+    public void testThatManagerRemovesTasksFromFile() throws IOException {
         Suite suite = createSuite();
 
         manager.removeTasks();
@@ -174,7 +175,7 @@ class FileBackedTaskManagerTest {
     }
 
     @Test
-    void testThatManagerRemovesTaskByIdFromFile() throws IOException {
+    public void testThatManagerRemovesTaskByIdFromFile() throws IOException {
         Suite suite = createSuite();
 
         Task task = suite.tasks.get(1);
@@ -191,7 +192,7 @@ class FileBackedTaskManagerTest {
     }
 
     @Test
-    void testThatManagerRemovesEpicsFromFile() throws IOException {
+    public void testThatManagerRemovesEpicsFromFile() throws IOException {
         Suite suite = createSuite();
 
         manager.removeEpics();
@@ -204,7 +205,7 @@ class FileBackedTaskManagerTest {
     }
 
     @Test
-    void testThatManagerRemovesEpicByIdFromFile() throws IOException {
+    public void testThatManagerRemovesEpicByIdFromFile() throws IOException {
         Suite suite = createSuite();
         Epic epic = suite.epics.getFirst();
 
@@ -221,7 +222,7 @@ class FileBackedTaskManagerTest {
     }
 
     @Test
-    void testThatManagerRemovesSubtasksFromFile() throws IOException {
+    public void testThatManagerRemovesSubtasksFromFile() throws IOException {
         Suite suite = createSuite();
 
         manager.removeSubtasks();
@@ -236,7 +237,7 @@ class FileBackedTaskManagerTest {
     }
 
     @Test
-    void testThatManagerRemovesSubtaskByIdFromFile() throws IOException {
+    public void testThatManagerRemovesSubtaskByIdFromFile() throws IOException {
         Suite suite = createSuite();
         Subtask sub = suite.subtasks.get(1);
 
@@ -272,70 +273,30 @@ class FileBackedTaskManagerTest {
     }
 
     private Task createAndSaveTask(String formattedTask) {
-        Task task = createTask(formattedTask);
+        Task task = Tasks.createTask(formattedTask);
         manager.saveTask(task);
         return task;
     }
 
-    private Task createTask(String formattedTask) {
-        String[] chunks = formattedTask.split(";");
-        return new Task(
-            chunks[0], // name
-            chunks[1], // description
-            TaskStatus.valueOf(chunks[2]), // status
-            parseTime(chunks[3]), // startTime
-            parseDuration(chunks[4]) // duration
-        );
-    }
-
     private Epic createAndSaveEpic(String formattedEpic) {
-        Epic epic = createEpic(formattedEpic);
+        Epic epic = Tasks.createEpic(formattedEpic);
         manager.saveEpic(epic);
         return epic;
     }
 
-    private Epic createEpic(String formattedEpic) {
-        String[] chunks = formattedEpic.split(";");
-        return new Epic(
-            chunks[0], // name
-            chunks[1] // description
-        );
-    }
-
     private Subtask createAndSaveSubtask(String formattedSubtask) {
-        Subtask sub = createSubtask(formattedSubtask);
+        Subtask sub = Tasks.createSubtask(formattedSubtask);
         manager.saveSubtask(sub);
         return sub;
     }
 
-    private Subtask createSubtask(String formattedSubtask) {
-        String[] chunks = formattedSubtask.split(";");
-        return new Subtask(
-            null, // id
-            chunks[0], // name
-            chunks[1], // description
-            TaskStatus.valueOf(chunks[2]), // status
-            Integer.parseInt(chunks[3]), // epicId
-            parseTime(chunks[4]), // startTime
-            parseDuration(chunks[5]) // duration
-        );
-    }
-
     private String formatTime(String formattedTime) {
-        return CSVFormat.formatTime(parseTime(formattedTime));
+        return CSVFormat.formatTime(Tasks.parseTime(formattedTime));
     }
 
     private int getIdFromLine(String line) {
         String[] chunks = line.split(CSVFormat.SEPARATOR);
         return Integer.parseInt(chunks[0]);
-    }
-
-    private LocalDateTime parseTime(String formattedTime) {
-        return formattedTime.equals("null") ? null : LocalDateTime.parse(formattedTime, DATE_TIME_FORMATTER);
-    }
-
-    private Duration parseDuration(String formattedDuration) {
-        return formattedDuration.equals("null") ? null : Duration.ofMinutes(Integer.parseInt(formattedDuration));
     }
 
     private Suite createSuite() {

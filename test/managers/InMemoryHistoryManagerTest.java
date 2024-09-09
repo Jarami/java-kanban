@@ -17,13 +17,13 @@ class InMemoryHistoryManagerTest {
     HistoryManager history;
 
     @BeforeEach
-    void setup() {
+    public void setup() {
         history = Managers.getDefaultHistory();
     }
 
     @Test
     @DisplayName("Добавить три разных задачи")
-    void addDifferentTasks() {
+    public void addDifferentTasks() {
         Task task = new Task(1, "task", "task desc", null, null);
         history.add(task);
         Epic epic = new Epic(2, "epic", "epic desc");
@@ -38,7 +38,7 @@ class InMemoryHistoryManagerTest {
 
     @Test
     @DisplayName("Добавить десять задач")
-    void testThatTenTasksCanBeAdded() {
+    public void testThatTenTasksCanBeAdded() {
 
         List<Task> tasks = new ArrayList<>();
         for (int i = 0; i < 10; i++) {
@@ -55,7 +55,7 @@ class InMemoryHistoryManagerTest {
 
     @Test
     @DisplayName("Добавить несколько экземпляров существующей задачи")
-    void givenManyTaskWithSameId_whenGetHistory_thenGotLatestTask() {
+    public void givenManyTaskWithSameId_whenGetHistory_thenGotLatestTask() {
         Task task1 = new Task(1, "task1", "desc1", null, null);
         Task task2 = new Task(2, "task2", "desc2", null, null);
         Task task3 = new Task(1, "task3", "desc3", null, null);
@@ -79,7 +79,7 @@ class InMemoryHistoryManagerTest {
 
     @Test
     @DisplayName("Очистить историю")
-    void clearHistory() {
+    public void clearHistory() {
         Task task = new Task(1, "task", "task desc", null, null);
         history.add(task);
 
@@ -90,7 +90,7 @@ class InMemoryHistoryManagerTest {
 
     @Test
     @DisplayName("Удалить существующую задачу из истории")
-    void givenExistingTask_whenRemove_thenGotTaskRemoved() {
+    public void givenExistingTask_whenRemove_thenGotTaskRemoved() {
         Task task1 = new Task(1, "task1", "desc1", null, null);
         Task task2 = new Task(2, "task2", "desc2", null, null);
         history.add(task1);
@@ -104,7 +104,7 @@ class InMemoryHistoryManagerTest {
 
     @Test
     @DisplayName("Удалить несколько экземпляров существующей задачи")
-    void givenManyTaskWithSameId_whenRemove_thenGotAllRemoved() {
+    public void givenManyTaskWithSameId_whenRemove_thenGotAllRemoved() {
         Task task1 = new Task(1, "task1", "desc1", null, null);
         Task task2 = new Task(2, "task2", "desc2", null, null);
         Task task3 = new Task(1, "task3", "desc3", null, null);
@@ -119,7 +119,7 @@ class InMemoryHistoryManagerTest {
 
     @Test
     @DisplayName("Удалить несуществующую задачу из истории")
-    void givenNonExistingTask_whenRemove_thenNothingHappens() {
+    public void givenNonExistingTask_whenRemove_thenNothingHappens() {
         Task task1 = new Task(1, "task1", "desc1", null, null);
         Task task2 = new Task(2, "task2", "desc2", null, null);
         history.add(task1);
