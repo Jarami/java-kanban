@@ -122,9 +122,9 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public Optional<Task> getTaskById(int id) {
-        Optional<Task> maybeTask = taskRepo.findById(id);
-        maybeTask.ifPresent(historyManager::add);
-        return maybeTask;
+        Optional<Task> task = taskRepo.findById(id);
+        task.ifPresent(historyManager::add);
+        return task;
     }
 
     @Override
@@ -134,9 +134,9 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public Optional<Epic> getEpicById(int id) {
-        Optional<Epic> maybeEpic = epicRepo.findById(id);
-        maybeEpic.ifPresent(historyManager::add);
-        return maybeEpic;
+        Optional<Epic> epic = epicRepo.findById(id);
+        epic.ifPresent(historyManager::add);
+        return epic;
     }
 
     @Override
@@ -146,9 +146,9 @@ public class InMemoryTaskManager implements TaskManager {
 
     @Override
     public Optional<Subtask> getSubtaskById(int id) {
-        Optional<Subtask> maybeSub = subtaskRepo.findById(id);
-        maybeSub.ifPresent(historyManager::add);
-        return maybeSub;
+        Optional<Subtask> sub = subtaskRepo.findById(id);
+        sub.ifPresent(historyManager::add);
+        return sub;
     }
 
     @Override
@@ -330,7 +330,7 @@ public class InMemoryTaskManager implements TaskManager {
         LocalDateTime startTime = task.getStartTime();
         LocalDateTime endTime = startTime.plus(task.getDuration());
 
-        Optional<Task> maybeTask = getPrioritizedTasks().stream()
+        Optional<Task> interceptingTask = getPrioritizedTasks().stream()
                 .filter(t -> {
                     if (t.equals(task)) {
                         return false;
@@ -347,7 +347,7 @@ public class InMemoryTaskManager implements TaskManager {
                 })
                 .findAny();
 
-        return maybeTask.isPresent();
+        return interceptingTask.isPresent();
     }
 
     private void updateEpicProperties(Epic epic) {
