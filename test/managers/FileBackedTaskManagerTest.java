@@ -35,7 +35,6 @@ class FileBackedTaskManagerTest extends TaskManagerTest<FileBackedTaskManager>{
     }
 
     private Path taskFile;
-//    private TaskManager manager;
 
     @BeforeEach
     public void setup() throws IOException {
