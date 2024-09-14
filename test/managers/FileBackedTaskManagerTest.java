@@ -7,6 +7,7 @@ import tasks.Subtask;
 import tasks.Task;
 import tasks.TaskStatus;
 import util.CSVFormat;
+import util.Tasks;
 
 import java.io.FileWriter;
 import java.io.IOException;
@@ -14,10 +15,10 @@ import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Set;
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static lib.TestAssertions.*;
@@ -25,10 +26,15 @@ import static org.junit.jupiter.api.Assertions.*;
 import static tasks.TaskStatus.*;
 import static tasks.TaskType.*;
 
-class FileBackedTaskManagerTest {
+class FileBackedTaskManagerTest extends TaskManagerTest<FileBackedTaskManager>{
+
+    static class Suite {
+        public List<Task> tasks = new ArrayList<>();
+        public List<Epic> epics = new ArrayList<>();
+        public List<Subtask> subtasks = new ArrayList<>();
+    }
 
     private Path taskFile;
-    private TaskManager manager;
 
     @BeforeEach
     public void setup() throws IOException {
@@ -39,23 +45,23 @@ class FileBackedTaskManagerTest {
     @Test
     void testThatManagerIsLoadedFromFile() throws IOException {
 
-        Task task1 = createAndSaveTask("task1", "desc of task1", NEW);
-        Task task2 = createAndSaveTask("task2", "desc of task2", IN_PROGRESS);
-        Epic epic1 = createAndSaveEpic("epic1", "desc of epic1");
-        Epic epic2 = createAndSaveEpic("epic2", "desc of epic2");
-        Subtask sub1 = createAndSaveSubtask("sub 0", "sub 0 desc", DONE, epic1);
-        Subtask sub2 = createAndSaveSubtask("sub 1", "sub 1 desc", DONE, epic1);
-        Subtask sub3 = createAndSaveSubtask("sub 2", "sub 2 desc", DONE, epic1);
+        Task task1 = createAndSaveTask("task1;desc1;NEW;2024-01-01 01:02:03;123");
+        Task task2 = createAndSaveTask("task2;desc2;IN_PROGRESS;2024-01-02 02:03:04;234");
+        Epic epic1 = createAndSaveEpic("epic1;desc3");
+        Epic epic2 = createAndSaveEpic("epic2;desc4");
+        Subtask sub1 = createAndSaveSubtask("sub0;desc5;DONE;" + epic1.getId() + ";2024-01-03 03:04:05;345");
+        Subtask sub2 = createAndSaveSubtask("sub1;desc6;DONE;" + epic1.getId() + ";2024-01-04 04:05:06;456");
+        Subtask sub3 = createAndSaveSubtask("sub2;desc7;DONE;" + epic1.getId() + ";2024-01-05 05:06:07;567");
 
         TaskManager manager2 = FileBackedTaskManager.loadFromFile(taskFile);
 
-        assertTaskEquals(task1, manager2.getTaskById(task1.getId()));
-        assertTaskEquals(task2, manager2.getTaskById(task2.getId()));
-        assertEpicEquals(epic1, manager2.getEpicById(epic1.getId()));
-        assertEpicEquals(epic2, manager2.getEpicById(epic2.getId()));
-        assertSubtaskEquals(sub1, manager2.getSubtaskById(sub1.getId()));
-        assertSubtaskEquals(sub2, manager2.getSubtaskById(sub2.getId()));
-        assertSubtaskEquals(sub3, manager2.getSubtaskById(sub3.getId()));
+        assertTaskEquals(task1, manager2.getTaskById(task1.getId()).orElseThrow());
+        assertTaskEquals(task2, manager2.getTaskById(task2.getId()).orElseThrow());
+        assertEpicEquals(epic1, manager2.getEpicById(epic1.getId()).orElseThrow());
+        assertEpicEquals(epic2, manager2.getEpicById(epic2.getId()).orElseThrow());
+        assertSubtaskEquals(sub1, manager2.getSubtaskById(sub1.getId()).orElseThrow());
+        assertSubtaskEquals(sub2, manager2.getSubtaskById(sub2.getId()).orElseThrow());
+        assertSubtaskEquals(sub3, manager2.getSubtaskById(sub3.getId()).orElseThrow());
         assertEquals(7, manager2.getTasks().size() + manager2.getEpics().size()
                 + manager2.getSubtasks().size());
     }
@@ -63,15 +69,15 @@ class FileBackedTaskManagerTest {
     @Test
     public void testThatIdGeneratorUpdatedAfterLoadingTasksFromFile() throws IOException {
         try (PrintWriter writer = new PrintWriter(new FileWriter(taskFile.toFile(), StandardCharsets.UTF_8))) {
-            writer.println(join("id","type","name","status","description","epic"));
-            writer.println(join("2","TASK","task1","DONE","desk of task1"));
-            writer.println(join("1","TASK","task2","NEW","desk of task2"));
+            writer.println(join("id","type","name","status","description","duration", "startTime","epic"));
+            writer.println(join("2","TASK","task1","DONE","desk of task1","123",formatTime("2024-01-01 01:02:03")));
+            writer.println(join("1","TASK","task2","NEW","desk of task2","234",formatTime("2024-01-02 02:03:04")));
         }
 
         TaskManager manager2 = FileBackedTaskManager.loadFromFile(taskFile);
         Set<Integer> ids = manager2.getTasks().stream().map(Task::getId).collect(Collectors.toSet());
 
-        Task newTask = new Task("task3", "desc of task3");
+        Task newTask = Tasks.createTask("task;desc;NEW;2024-01-03 03:04:05;345");
         manager2.saveTask(newTask);
 
         assertFalse(ids.contains(newTask.getId()));
@@ -88,159 +94,159 @@ class FileBackedTaskManagerTest {
     }
 
     @Test
-    void testThatManagerSavesTaskToFile() throws IOException {
-        Task task = new Task("task", "desc of task");
-        manager.saveTask(task);
+    public void testThatManagerSavesTaskToFile() throws IOException {
+        Task task = createAndSaveTask("task;desc;NEW;2024-01-01 00:00:00;123");
 
         String line = readLastLine();
-        String expectedLine = join(task.getId(), TASK, task.getName(), task.getStatus(), task.getDescription());
-        assertEquals(expectedLine, line);
+        int id = getIdFromLine(line);
+
+        assertEquals(task.getId(), id);
     }
 
     @Test
-    void testThatManagerSavesEpicToFile() throws IOException {
-        Epic epic = new Epic("epic", "desc of epic");
-        manager.saveEpic(epic);
+    public void testThatManagerSavesEpicToFile() throws IOException {
+        Epic epic = createAndSaveEpic("epic;desc");
 
         String line = readLastLine();
-        String expectedLine = join(epic.getId(), EPIC, epic.getName(), epic.getStatus(), epic.getDescription());
-        assertEquals(expectedLine, line);
+        int id = getIdFromLine(line);
+        assertEquals(epic.getId(), id);
     }
 
     @Test
-    void testThatManagerSavesSubtaskToFile() throws IOException {
-        Epic epic = new Epic("epic", "desc of epic");
-        manager.saveEpic(epic);
-        Subtask sub = new Subtask("sub", "desc of sub", epic);
-        manager.saveSubtask(sub);
+    public void testThatManagerSavesSubtaskToFile() throws IOException {
+        Epic epic = createAndSaveEpic("epic;desc");
+        Subtask sub = createAndSaveSubtask("sub;desc1;NEW;" + epic.getId() + ";2024-01-01 01:02:03;123");
 
         String line = readLastLine();
-        String expectedLine = join(sub.getId(), SUBTASK, sub.getName(), sub.getStatus(), sub.getDescription(),
-                sub.getEpicId());
-        assertEquals(expectedLine, line);
+        int id = getIdFromLine(line);
+        assertEquals(sub.getId(), id);
     }
 
     @Test
-    void testThatManagerUpdatesTaskInFile() throws IOException {
-        Task task = new Task("task", "desc of task");
-        manager.saveTask(task);
+    public void testThatManagerUpdatesTaskInFile() throws IOException {
+        Task task = createAndSaveTask("task;desc;NEW;2024-01-01 01:02:03;123");
 
         task.setName("new task");
         manager.updateTask(task);
 
-        String line = readLastLine();
-        String expectedLine = join(task.getId(), TASK, task.getName(), task.getStatus(), task.getDescription());
-        assertEquals(expectedLine, line);
+        Task updatedTask = CSVFormat.fromString(readLastLine());
+        assertTaskEquals(task, updatedTask);
     }
 
     @Test
-    void testThatManagerUpdatesEpicInFile() throws IOException {
-        Epic epic = new Epic("epic", "desc of epic");
-        manager.saveEpic(epic);
+    public void testThatManagerUpdatesEpicInFile() throws IOException {
+        Epic epic = createAndSaveEpic("epic;desc");
 
         epic.setName("new epic");
         manager.updateEpic(epic);
 
-        String line = readLastLine();
-        String expectedLine = join(epic.getId(), EPIC, epic.getName(), epic.getStatus(), epic.getDescription());
-        assertEquals(expectedLine, line);
+        Epic updatedEpic = (Epic)(CSVFormat.fromString(readLastLine()));
+        assertEpicEquals(epic, updatedEpic);
     }
 
     @Test
-    void testThatManagerUpdatesSubtaskToFile() throws IOException {
-        Epic epic = new Epic("epic", "desc of epic");
-        manager.saveEpic(epic);
-        Subtask sub = new Subtask("sub", "desc of sub", epic);
-        manager.saveSubtask(sub);
+    public void testThatManagerUpdatesSubtaskToFile() throws IOException {
+        Epic epic = createAndSaveEpic("epic;desc");
+        Subtask sub = createAndSaveSubtask("sub;desc1;NEW;" + epic.getId() + ";2024-01-01 01:02:03;123");
 
         sub.setName("new sub");
         manager.updateSubtask(sub);
 
-        String line = readLastLine();
-        String expectedLine = join(sub.getId(), SUBTASK, sub.getName(), sub.getStatus(), sub.getDescription(),
-                sub.getEpicId());
-        assertEquals(expectedLine, line);
+        Subtask updatedSub = (Subtask)(CSVFormat.fromString(readLastLine()));
+        assertEquals(sub, updatedSub);
     }
 
     @Test
-    void testThatManagerRemovesTasksFromFile() throws IOException {
-        createAndSaveTasks(3);
-        Epic epic1 = createAndSaveEpic();
-        Epic epic2 = createAndSaveEpic();
-        List<Subtask> subs = createAndSaveSubtasks(epic1, 2);
+    public void testThatManagerRemovesTasksFromFile() throws IOException {
+        Suite suite = createSuite();
 
         manager.removeTasks();
 
         Set<Integer> actualIds = Set.copyOf(readTaskId());
-        Set<Integer> expectedIds = Set.of(epic1.getId(), epic2.getId(), subs.get(0).getId(), subs.get(1).getId());
+
+        Set<Integer> expectedIds = new HashSet<>();
+        expectedIds.addAll(suite.epics.stream().map(Task::getId).toList());
+        expectedIds.addAll(suite.subtasks.stream().map(Task::getId).toList());
+
         assertEquals(expectedIds, actualIds);
     }
 
     @Test
-    void testThatManagerRemovesTaskByIdFromFile() throws IOException {
-        List<Task> tasks = createAndSaveTasks(2);
-        Epic epic1 = createAndSaveEpic();
-        Subtask sub = createAndSaveSubtask(epic1);
+    public void testThatManagerRemovesTaskByIdFromFile() throws IOException {
+        Suite suite = createSuite();
 
-        Task task = tasks.get(1);
+        Task task = suite.tasks.get(1);
         manager.removeTaskById(task.getId());
 
         Set<Integer> actualIds = Set.copyOf(readTaskId());
-        Set<Integer> expectedIds = Set.of(tasks.get(0).getId(), epic1.getId(), sub.getId());
+
+        Set<Integer> expectedIds = new HashSet<>();
+        expectedIds.addAll(suite.tasks.stream().filter(t -> t != task).map(Task::getId).toList());
+        expectedIds.addAll(suite.epics.stream().map(Task::getId).toList());
+        expectedIds.addAll(suite.subtasks.stream().map(Task::getId).toList());
+
         assertEquals(expectedIds, actualIds);
     }
 
     @Test
-    void testThatManagerRemovesEpicsFromFile() throws IOException {
-        List<Task> tasks = createAndSaveTasks(3);
-        createAndSaveEpicWithSubtasks(2);
+    public void testThatManagerRemovesEpicsFromFile() throws IOException {
+        Suite suite = createSuite();
 
         manager.removeEpics();
 
         Set<Integer> actualIds = Set.copyOf(readTaskId());
-        Set<Integer> expectedIds = Set.of(tasks.get(0).getId(), tasks.get(1).getId(), tasks.get(2).getId());
+
+        Set<Integer> expectedIds = new HashSet<>(suite.tasks.stream().map(Task::getId).toList());
+
         assertEquals(expectedIds, actualIds);
     }
 
     @Test
-    void testThatManagerRemovesEpicByIdFromFile() throws IOException {
-        List<Task> tasks = createAndSaveTasks(2);
-        Epic epic1 = createAndSaveEpic();
-        Epic epic2 = createAndSaveEpic();
-        Subtask sub = createAndSaveSubtask(epic2);
+    public void testThatManagerRemovesEpicByIdFromFile() throws IOException {
+        Suite suite = createSuite();
+        Epic epic = suite.epics.getFirst();
 
-        manager.removeEpicById(epic1.getId());
+        manager.removeEpicById(epic.getId());
 
         Set<Integer> actualIds = Set.copyOf(readTaskId());
-        Set<Integer> expectedIds = Set.of(tasks.get(0).getId(), tasks.get(1).getId(), epic2.getId(), sub.getId());
+
+        Set<Integer> expectedIds = new HashSet<>();
+        expectedIds.addAll(suite.tasks.stream().map(Task::getId).toList());
+        expectedIds.addAll(suite.epics.stream().filter(e -> e != epic).map(Task::getId).toList());
+        expectedIds.addAll(suite.subtasks.stream().filter(s -> !s.getEpicId().equals(epic.getId())).map(Task::getId).toList());
+
         assertEquals(expectedIds, actualIds);
     }
 
     @Test
-    void testThatManagerRemovesSubtasksFromFile() throws IOException {
-        List<Task> tasks = createAndSaveTasks(2);
-        Epic epic1 = createAndSaveEpic();
-        createAndSaveSubtasks(epic1, 2);
-        Epic epic2 = createAndSaveEpic();
-        createAndSaveSubtasks(epic2, 3);
+    public void testThatManagerRemovesSubtasksFromFile() throws IOException {
+        Suite suite = createSuite();
 
         manager.removeSubtasks();
 
         Set<Integer> actualIds = Set.copyOf(readTaskId());
-        Set<Integer> expectedIds = Set.of(tasks.get(0).getId(), tasks.get(1).getId(), epic1.getId(), epic2.getId());
+
+        Set<Integer> expectedIds = new HashSet<>();
+        expectedIds.addAll(suite.tasks.stream().map(Task::getId).toList());
+        expectedIds.addAll(suite.epics.stream().map(Task::getId).toList());
+
         assertEquals(expectedIds, actualIds);
     }
 
     @Test
-    void testThatManagerRemovesSubtaskByIdFromFile() throws IOException {
-        List<Task> tasks = createAndSaveTasks(2);
-        Epic epic = createAndSaveEpic();
-        List<Subtask> subs = createAndSaveSubtasks(epic, 2);
+    public void testThatManagerRemovesSubtaskByIdFromFile() throws IOException {
+        Suite suite = createSuite();
+        Subtask sub = suite.subtasks.get(1);
 
-        manager.removeSubtaskById(subs.get(1).getId());
+        manager.removeSubtaskById(sub.getId());
 
         Set<Integer> actualIds = Set.copyOf(readTaskId());
-        Set<Integer> expectedIds = Set.of(tasks.get(0).getId(), tasks.get(1).getId(), epic.getId(), subs.get(0).getId());
+
+        Set<Integer> expectedIds = new HashSet<>();
+        expectedIds.addAll(suite.tasks.stream().map(Task::getId).toList());
+        expectedIds.addAll(suite.epics.stream().map(Task::getId).toList());
+        expectedIds.addAll(suite.subtasks.stream().filter(s -> s != sub).map(Task::getId).toList());
+
         assertEquals(expectedIds, actualIds);
     }
 
@@ -263,60 +269,35 @@ class FileBackedTaskManagerTest {
                 .toList();
     }
 
-    private Task createAndSaveTask(String name, String desc, TaskStatus status) {
-        Task task = new Task(name, desc, status);
-        manager.saveTask(task);
-        return task;
+    private String formatTime(String formattedTime) {
+        return CSVFormat.formatTime(Tasks.parseTime(formattedTime));
     }
 
-    private List<Task> createAndSaveTasks(int taskCount) {
-        List<Task> tasks = new ArrayList<>();
-        for (int i = 0; i < taskCount; i++) {
-            Task task = new Task("task " + i, "task " + i + " desc");
-            tasks.add(task);
-            manager.saveTask(task);
-        }
-        return tasks;
+    private int getIdFromLine(String line) {
+        String[] chunks = line.split(CSVFormat.SEPARATOR);
+        return Integer.parseInt(chunks[0]);
     }
 
-    private Epic createAndSaveEpic() {
-        Epic epic = new Epic("epic", "epic desc");
-        manager.saveEpic(epic);
-        return epic;
-    }
+    private Suite createSuite() {
 
-    private Epic createAndSaveEpic(String name, String desc) {
-        Epic epic = new Epic(name, desc);
-        manager.saveEpic(epic);
-        return epic;
-    }
+        Suite suite = new Suite();
 
-    private Subtask createAndSaveSubtask(Epic epic) {
-        Subtask sub = new Subtask("sub", "sub desc", epic);
-        manager.saveSubtask(sub);
-        return sub;
-    }
+        Task task1 = createAndSaveTask("task1;desc1;NEW;2024-01-01 01:02:03;123");
+        Task task2 = createAndSaveTask("task2;desc2;NEW;2024-01-02 02:03:04;234");
+        Task task3 = createAndSaveTask("task3;desc3;NEW;2024-01-03 03:04:05;345");
+        Epic epic1 = createAndSaveEpic("epic1;desc4");
+        Epic epic2 = createAndSaveEpic("epic2;desc5");
+        Subtask sub1 = createAndSaveSubtask("sub1;desc6;NEW;" + epic1.getId() + ";2024-01-04 04:05:06;456");
+        Subtask sub2 = createAndSaveSubtask("sub2;desc7;NEW;" + epic1.getId() + ";2024-01-05 05:06:07;567");
 
-    private Subtask createAndSaveSubtask(String name, String desc, TaskStatus status, Epic epic) {
-        Subtask sub = new Subtask(name, desc, status, epic);
-        manager.saveSubtask(sub);
-        return sub;
-    }
+        suite.tasks.add(task1);
+        suite.tasks.add(task2);
+        suite.tasks.add(task3);
+        suite.epics.add(epic1);
+        suite.epics.add(epic2);
+        suite.subtasks.add(sub1);
+        suite.subtasks.add(sub2);
 
-    private List<Subtask> createAndSaveSubtasks(Epic epic, int subtaskCount) {
-        List<Subtask> subtasks = new ArrayList<>();
-        for (int i = 0; i < subtaskCount; i++) {
-            Subtask sub = new Subtask("sub " + i, "sub desc " + i, epic);
-            subtasks.add(sub);
-            manager.saveSubtask(sub);
-        }
-        return subtasks;
-    }
-
-    private void createAndSaveEpicWithSubtasks(int subtaskCount) {
-        Epic epic = createAndSaveEpic();
-        for (int i = 0; i < subtaskCount; i++) {
-            createAndSaveSubtask(epic);
-        }
+        return suite;
     }
 }

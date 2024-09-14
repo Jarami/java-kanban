@@ -3,6 +3,7 @@ import managers.TaskManager;
 import tasks.Epic;
 import tasks.Subtask;
 import tasks.Task;
+import util.Tasks;
 
 import java.util.*;
 
@@ -22,11 +23,15 @@ public class Main {
         // Запросите созданные задачи несколько раз в разном порядке.
         for (int i = 0; i < 1000; i++) {
             Task randomTask = getRandomTask();
+
+            // просматриваем задачу
             watch(randomTask);
+
             // После каждого запроса выведите историю и убедитесь, что в ней нет повторов.
             checkHistoryUniqueness();
         }
 
+        // выводим статистику просмотров
         printWatchingStat();
 
         // Удалите задачу, которая есть в истории, и проверьте, что при печати она не будет выводиться.
@@ -38,31 +43,15 @@ public class Main {
     }
 
     private static void createTasks() {
-        createAndSaveTask("task1", "desc of task1");
-        createAndSaveTask("task2", "desc of task2");
-        createAndSaveEpicWithSubs("epic1", "desc of epic1", 3);
-        createAndSaveEpicWithSubs("epic2", "desc of epic2", 0);
-    }
+        createAndSaveTask("task1;desc1;NEW;2024-01-01 00:00:00;120");
+        createAndSaveTask("task2;desc2;NEW;2024-01-02 00:00:00;120");
 
-    private static void createAndSaveTask(String name, String desc) {
-        Task task = new Task(name, desc);
-        manager.saveTask(task);
-        tasks.add(task);
-    }
+        Epic epic = createAndSaveEpic("epic1;desc3");
+        createAndSaveSubtask("sub1;desc4;NEW;" +  epic.getId() + ";2024-01-03 00:00:00;120");
+        createAndSaveSubtask("sub2;desc5;NEW;" +  epic.getId() + ";2024-01-04 00:00:00;120");
+        createAndSaveSubtask("sub3;desc6;NEW;" +  epic.getId() + ";2024-01-05 00:00:00;120");
 
-    private static void createAndSaveEpicWithSubs(String name, String desc, int subtaskCount) {
-        Epic epic = new Epic(name, desc);
-        manager.saveEpic(epic);
-        tasks.add(epic);
-
-        if (subtaskCount > 0) {
-            for (int i = 0; i < subtaskCount; i++) {
-                Subtask sub = new Subtask("sub " + i + " of " + name, "sub " + i + " desc of " + name,
-                        epic);
-                manager.saveSubtask(sub);
-                tasks.add(sub);
-            }
-        }
+        createAndSaveEpic("epic2;desc3");
     }
 
     private static Task getRandomTask() {
@@ -91,26 +80,28 @@ public class Main {
 
     private static String getFailUniquenessMessage(List<Task> history) {
         Map<Task, Integer> historyStat = new HashMap<>();
-        for (Task task : history) {
+
+        history.forEach(task -> {
             int count = historyStat.getOrDefault(task, 0);
             historyStat.put(task, count + 1);
-        }
+        });
+
         Set<Integer> doubles = new HashSet<>();
-        for (Map.Entry<Task, Integer> entry : historyStat.entrySet()) {
-            if (entry.getValue() > 1) {
-                doubles.add(entry.getKey().getId());
+        historyStat.forEach((task, count) -> {
+            if (count > 1) {
+                doubles.add(task.getId());
             }
-        }
+        });
+
         return String.format("doubles are " + doubles);
 
     }
 
     private static void printWatchingStat() {
         System.out.println("======== WATCHING STATS ===============");
-        for (Map.Entry<Task, Integer> entry : watchingStat.entrySet()) {
-            System.out.println("task \"" + entry.getKey().getName() + "\" has been watched " + entry.getValue() +
-                    " times");
-        }
+        watchingStat.forEach((task, count) -> {
+            System.out.println("task \"" + task.getName() + "\" has been watched " + count + " times");
+        });
         System.out.println("=======================================");
     }
 
@@ -164,5 +155,26 @@ public class Main {
         } else {
             manager.removeTaskById(task.getId());
         }
+    }
+
+    private static Task createAndSaveTask(String formattedTask) {
+        Task task = Tasks.createTask(formattedTask);
+        manager.saveTask(task);
+        tasks.add(task);
+        return task;
+    }
+
+    private static Epic createAndSaveEpic(String formattedEpic) {
+        Epic epic = Tasks.createEpic(formattedEpic);
+        manager.saveEpic(epic);
+        tasks.add(epic);
+        return epic;
+    }
+
+    private static Subtask createAndSaveSubtask(String formattedSubtask) {
+        Subtask sub = Tasks.createSubtask(formattedSubtask);
+        manager.saveSubtask(sub);
+        tasks.add(sub);
+        return sub;
     }
 }

@@ -17,18 +17,25 @@ class InMemoryHistoryManagerTest {
     HistoryManager history;
 
     @BeforeEach
-    void setup() {
+    public void setup() {
         history = Managers.getDefaultHistory();
     }
 
     @Test
+    @DisplayName("получить пустую историю задач")
+    public void getEmptyHistory() {
+        List<Task> tasks = history.getHistory();
+        assertEmpty(tasks);
+    }
+
+    @Test
     @DisplayName("Добавить три разных задачи")
-    void addDifferentTasks() {
-        Task task = new Task(1, "task", "task desc");
+    public void addDifferentTasks() {
+        Task task = new Task(1, "task", "task desc", null, null);
         history.add(task);
         Epic epic = new Epic(2, "epic", "epic desc");
         history.add(epic);
-        Subtask sub = new Subtask(3, "sub", "sub desc", epic);
+        Subtask sub = new Subtask(3, "sub", "sub desc", epic, null, null);
         history.add(sub);
 
         List<Task> actualTasks = history.getHistory();
@@ -38,11 +45,11 @@ class InMemoryHistoryManagerTest {
 
     @Test
     @DisplayName("Добавить десять задач")
-    void testThatTenTasksCanBeAdded() {
+    public void testThatTenTasksCanBeAdded() {
 
         List<Task> tasks = new ArrayList<>();
         for (int i = 0; i < 10; i++) {
-            tasks.add(new Task(i,"task" + i, "desc of task " + i));
+            tasks.add(new Task(i,"task" + i, "desc of task " + i, null, null));
         }
 
         for (int i = 9; i >= 0; i--) {
@@ -55,10 +62,10 @@ class InMemoryHistoryManagerTest {
 
     @Test
     @DisplayName("Добавить несколько экземпляров существующей задачи")
-    void givenManyTaskWithSameId_whenGetHistory_thenGotLatestTask() {
-        Task task1 = new Task(1, "task1", "desc1");
-        Task task2 = new Task(2, "task2", "desc2");
-        Task task3 = new Task(1, "task3", "desc3");
+    public void givenManyTaskWithSameId_whenGetHistory_thenGotLatestTask() {
+        Task task1 = new Task(1, "task1", "desc1", null, null);
+        Task task2 = new Task(2, "task2", "desc2", null, null);
+        Task task3 = new Task(1, "task3", "desc3", null, null);
         history.add(task1);
         history.add(task2);
         history.add(task3);
@@ -79,8 +86,8 @@ class InMemoryHistoryManagerTest {
 
     @Test
     @DisplayName("Очистить историю")
-    void clearHistory() {
-        Task task = new Task(1, "task", "task desc");
+    public void clearHistory() {
+        Task task = new Task(1, "task", "task desc", null, null);
         history.add(task);
 
         history.clear();
@@ -89,25 +96,56 @@ class InMemoryHistoryManagerTest {
     }
 
     @Test
-    @DisplayName("Удалить существующую задачу из истории")
-    void givenExistingTask_whenRemove_thenGotTaskRemoved() {
-        Task task1 = new Task(1, "task1", "desc1");
-        Task task2 = new Task(2, "task2", "desc2");
+    @DisplayName("Удалить существующую задачу из начала")
+    public void givenNonEmptyHistory_whenRemoveFirst_thenGotTaskRemoved() {
+        Task task1 = new Task(1, "task1", "desc1", null, null);
+        Task task2 = new Task(2, "task2", "desc2", null, null);
+        Task task3 = new Task(3, "task3", "desc3", null, null);
         history.add(task1);
         history.add(task2);
+        history.add(task3);
 
         history.remove(1);
 
-        assertIterableEquals(List.of(task2), history.getHistory());
+        assertIterableEquals(List.of(task3, task2), history.getHistory());
     }
 
+    @Test
+    @DisplayName("Удалить существующую задачу с конца")
+    public void givenNonEmptyHistory_whenRemoveLast_thenGotTaskRemoved() {
+        Task task1 = new Task(1, "task1", "desc1", null, null);
+        Task task2 = new Task(2, "task2", "desc2", null, null);
+        Task task3 = new Task(3, "task3", "desc3", null, null);
+        history.add(task1);
+        history.add(task2);
+        history.add(task3);
+
+        history.remove(3);
+
+        assertIterableEquals(List.of(task2, task1), history.getHistory());
+    }
+
+    @Test
+    @DisplayName("Удалить существующую задачу из середины")
+    public void givenNonEmptyHistory_whenRemoveFromMiddle_thenGotTaskRemoved() {
+        Task task1 = new Task(1, "task1", "desc1", null, null);
+        Task task2 = new Task(2, "task2", "desc2", null, null);
+        Task task3 = new Task(3, "task3", "desc3", null, null);
+        history.add(task1);
+        history.add(task2);
+        history.add(task3);
+
+        history.remove(2);
+
+        assertIterableEquals(List.of(task3, task1), history.getHistory());
+    }
 
     @Test
     @DisplayName("Удалить несколько экземпляров существующей задачи")
-    void givenManyTaskWithSameId_whenRemove_thenGotAllRemoved() {
-        Task task1 = new Task(1, "task1", "desc1");
-        Task task2 = new Task(2, "task2", "desc2");
-        Task task3 = new Task(1, "task3", "desc3");
+    public void givenManyTaskWithSameId_whenRemove_thenGotAllRemoved() {
+        Task task1 = new Task(1, "task1", "desc1", null, null);
+        Task task2 = new Task(2, "task2", "desc2", null, null);
+        Task task3 = new Task(1, "task3", "desc3", null, null);
         history.add(task1);
         history.add(task2);
         history.add(task3);
@@ -119,9 +157,9 @@ class InMemoryHistoryManagerTest {
 
     @Test
     @DisplayName("Удалить несуществующую задачу из истории")
-    void givenNonExistingTask_whenRemove_thenNothingHappens() {
-        Task task1 = new Task(1, "task1", "desc1");
-        Task task2 = new Task(2, "task2", "desc2");
+    public void givenNonExistingTask_whenRemove_thenNothingHappens() {
+        Task task1 = new Task(1, "task1", "desc1", null, null);
+        Task task2 = new Task(2, "task2", "desc2", null, null);
         history.add(task1);
         history.add(task2);
 

@@ -29,8 +29,8 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
 
         TaskManager manager = new FileBackedTaskManager(taskFile);
 
-        Tasks.createAndSaveTask(manager, "task1", "desc1");
-        Tasks.createAndSaveTask(manager, "task2", "desc2");
+        Tasks.createAndSaveTask(manager, "task1", "desc1", null, null);
+        Tasks.createAndSaveTask(manager, "task2", "desc2", null, null);
         Tasks.createAndSaveEpicWithSubs(manager, "epic1", "epic desc1", 0);
         Tasks.createAndSaveEpicWithSubs(manager, "epic2", "epic desc2", 3);
 
@@ -43,7 +43,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
 
         FileBackedTaskManager manager = new FileBackedTaskManager(path);
 
-        for (Task task : CSVFormat.loadTasksFromFile(path)) {
+        CSVFormat.loadTasksFromFile(path).forEach(task -> {
             if (task instanceof Epic) {
                 manager.saveEpic((Epic)task);
             } else if (task instanceof Subtask) {
@@ -51,7 +51,7 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
             } else {
                 manager.saveTask(task);
             }
-        }
+        });
 
         return manager;
     }
@@ -135,15 +135,9 @@ public class FileBackedTaskManager extends InMemoryTaskManager {
 
         try (CSVFormat.TaskFileWriter writer = CSVFormat.writer(taskFile)) {
 
-            for (Task task : getTasks()) {
-                writer.println(task);
-            }
-            for (Epic epic : getEpics()) {
-                writer.println(epic);
-            }
-            for (Subtask subtask : getSubtasks()) {
-                writer.println(subtask);
-            }
+            getTasks().forEach(writer::println);
+            getEpics().forEach(writer::println);
+            getSubtasks().forEach(writer::println);
 
         } catch (IOException e) {
             throw new ManagerSaveException("Не удалось сохранить задачи", e);

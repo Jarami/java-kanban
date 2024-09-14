@@ -13,7 +13,7 @@ class TaskTest {
 
     @BeforeEach
     void setup() {
-        task = new Task("name", "desc");
+        task = new Task("name", "desc", null, null);
     }
 
     @Test
@@ -51,8 +51,8 @@ class TaskTest {
     @Test
     @DisplayName("Проверить, что задачи равны, если их id равны")
     void testThatTasksAreEqualIfTheirIdsEqual() {
-        Task task1 = new Task(1, "task1", "desc1", TaskStatus.NEW);
-        Task task2 = new Task(1, "task2", "desc2", TaskStatus.DONE);
+        Task task1 = new Task(1, "task1", "desc1", TaskStatus.NEW, null, null);
+        Task task2 = new Task(1, "task2", "desc2", TaskStatus.DONE, null, null);
         assertEquals(task1, task2);
     }
 

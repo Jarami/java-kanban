@@ -30,6 +30,14 @@ public class TestAssertions {
                 "статус эпика должен быть %s, а не %s",
                 expectedEpic.getStatus(), actualEpic.getStatus()));
 
+        assertEquals(expectedEpic.getStartTime(), actualEpic.getStartTime(), String.format(
+                "начало выполнения эпика должно быть %s, а не %s",
+                expectedEpic.getStartTime(), actualEpic.getStartTime()));
+
+        assertEquals(expectedEpic.getDuration(), actualEpic.getDuration(), String.format(
+                "длительность эпика должна быть %s, а не %s",
+                expectedEpic.getDuration(), actualEpic.getDuration()));
+
         assertIterableEquals(expectedEpic.getSubtasksId(), actualEpic.getSubtasksId(), String.format(
                 "подзадачи эпика должны быть %s, а не %s",
                 expectedEpic.getSubtasksId(), actualEpic.getSubtasksId()));
@@ -47,19 +55,35 @@ public class TestAssertions {
         assertEquals(expectedTask.getStatus(), actualTask.getStatus(), String.format(
                 "статус задачи должен быть %s, а не %s",
                 expectedTask.getStatus(), actualTask.getStatus()));
+
+        assertEquals(expectedTask.getStartTime(), actualTask.getStartTime(), String.format(
+                "начало выполнения задачи должно быть %s, а не %s",
+                expectedTask.getStartTime(), actualTask.getStartTime()));
+
+        assertEquals(expectedTask.getDuration(), actualTask.getDuration(), String.format(
+                "длительность задачи должна быть %s, а не %s",
+                expectedTask.getDuration(), actualTask.getDuration()));
     }
 
     public static void assertSubtaskEquals(Subtask expectedSub, Subtask actualSub) {
         assertEquals(expectedSub.getName(), actualSub.getName(), String.format(
-                "имя эпика должно быть %s, а не %s",
+                "имя подзадачи должно быть %s, а не %s",
                 expectedSub.getName(), actualSub.getName()));
 
         assertEquals(expectedSub.getDescription(), actualSub.getDescription(), String.format(
-                "описание эпика должно быть %s, а не %s",
+                "описание подзадачи должно быть %s, а не %s",
                 expectedSub.getDescription(), actualSub.getDescription()));
 
         assertEquals(expectedSub.getStatus(), actualSub.getStatus(), String.format(
-                "статус эпика должен быть %s, а не %s",
+                "статус подзадачи должен быть %s, а не %s",
                 expectedSub.getStatus(), actualSub.getStatus()));
+
+        assertEquals(expectedSub.getStartTime(), actualSub.getStartTime(), String.format(
+                "начало выполнения подзадачи должно быть %s, а не %s",
+                expectedSub.getStartTime(), actualSub.getStartTime()));
+
+        assertEquals(expectedSub.getDuration(), actualSub.getDuration(), String.format(
+                "длительность подзадачи должна быть %s, а не %s",
+                expectedSub.getDuration(), actualSub.getDuration()));
     }
 }
