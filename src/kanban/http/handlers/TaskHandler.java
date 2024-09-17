@@ -27,6 +27,10 @@ public class TaskHandler extends BaseHttpHandler {
                 .match("/tasks")
                 .match("/tasks/{id}");
 
+        if (matcher.getMatchedPath() == null) {
+            return getBadRequest(exchange);
+        }
+
         return switch (matcher.getMatchedPath()) {
             case "/tasks" -> {
                 List<Task> tasks = manager.getTasks();
@@ -48,7 +52,7 @@ public class TaskHandler extends BaseHttpHandler {
         PathMatcher matcher = PathMatcher.with(exchange.getRequestURI().getPath())
                 .match("/tasks");
 
-        if (!matcher.getMatchedPath().equals("/tasks")) {
+        if (matcher.getMatchedPath() == null || !matcher.getMatchedPath().equals("/tasks")) {
             return getBadRequest(exchange);
         }
 
@@ -75,13 +79,12 @@ public class TaskHandler extends BaseHttpHandler {
         PathMatcher matcher = PathMatcher.with(exchange.getRequestURI().getPath())
                 .match("/tasks/{id}");
 
-        if (matcher.getMatchedPath().equals("/tasks/{id}")) {
-
+        if (matcher.getMatchedPath() == null || !matcher.getMatchedPath().equals("/tasks/{id}")) {
+            return getBadRequest(exchange);
+        } else {
             String id = matcher.getPathParameters().getFirst();
             manager.removeTaskById(Integer.parseInt(id));
             return new ResponseEntity(200);
-        } else {
-            return getBadRequest(exchange);
         }
     }
 

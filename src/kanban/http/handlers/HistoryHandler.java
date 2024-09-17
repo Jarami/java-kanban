@@ -23,11 +23,11 @@ public class HistoryHandler extends BaseHttpHandler implements HttpHandler {
         PathMatcher matcher = PathMatcher.with(exchange.getRequestURI().getPath())
                 .match("/history");
 
-        if (matcher.getMatchedPath().equals("/history")) {
+        if (matcher.getMatchedPath() == null || !matcher.getMatchedPath().equals("/history")) {
+            return getBadRequest(exchange);
+        } else {
             List<Task> tasks = manager.getHistory();
             return new ResponseEntity(200, tasks);
-        } else {
-            return getBadRequest(exchange);
         }
 
     }

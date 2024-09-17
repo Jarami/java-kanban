@@ -28,6 +28,10 @@ public class SubtaskHandler extends BaseHttpHandler implements HttpHandler {
                 .match("/subtasks")
                 .match("/subtasks/{id}");
 
+        if (matcher.getMatchedPath() == null) {
+            return getBadRequest(exchange);
+        }
+
         return switch (matcher.getMatchedPath()) {
             case "/subtasks" -> {
                 List<Subtask> subs = manager.getSubtasks();
@@ -50,7 +54,7 @@ public class SubtaskHandler extends BaseHttpHandler implements HttpHandler {
         PathMatcher matcher = PathMatcher.with(exchange.getRequestURI().getPath())
                 .match("/subtasks");
 
-        if (!matcher.getMatchedPath().equals("/subtasks")) {
+        if (matcher.getMatchedPath() == null || !matcher.getMatchedPath().equals("/subtasks")) {
             return getBadRequest(exchange);
         }
 
@@ -77,12 +81,12 @@ public class SubtaskHandler extends BaseHttpHandler implements HttpHandler {
         PathMatcher matcher = PathMatcher.with(exchange.getRequestURI().getPath())
                 .match("/subtasks/{id}");
 
-        if (matcher.getMatchedPath().equals("/subtasks/{id}")) {
+        if (matcher.getMatchedPath() == null || !matcher.getMatchedPath().equals("/subtasks/{id}")) {
+            return getBadRequest(exchange);
+        } else {
             String id = matcher.getPathParameters().getFirst();
             manager.removeSubtaskById(Integer.parseInt(id));
             return new ResponseEntity(200);
-        } else {
-            return getBadRequest(exchange);
         }
     }
 }

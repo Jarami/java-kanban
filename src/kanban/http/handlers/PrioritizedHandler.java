@@ -23,11 +23,11 @@ public class PrioritizedHandler extends BaseHttpHandler implements HttpHandler {
         PathMatcher matcher = PathMatcher.with(exchange.getRequestURI().getPath())
                 .match("/prioritized");
 
-        if (matcher.getMatchedPath().equals("/prioritized")) {
+        if (matcher.getMatchedPath() == null || !matcher.getMatchedPath().equals("/prioritized")) {
+            return getBadRequest(exchange);
+        } else {
             List<Task> tasks = manager.getPrioritizedTasks();
             return new ResponseEntity(200, tasks);
-        } else {
-            return getBadRequest(exchange);
         }
 
     }

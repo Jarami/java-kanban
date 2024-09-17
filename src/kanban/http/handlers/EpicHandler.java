@@ -31,6 +31,10 @@ public class EpicHandler extends BaseHttpHandler implements HttpHandler {
                 .match("/epics/{id}")
                 .match("/epics/{id}/subtasks");
 
+        if (matcher.getMatchedPath() == null) {
+            return getBadRequest(exchange);
+        }
+
         return switch (matcher.getMatchedPath()) {
             case "/epics" -> {
                 List<Epic> tasks = manager.getEpics();
@@ -62,7 +66,7 @@ public class EpicHandler extends BaseHttpHandler implements HttpHandler {
         PathMatcher matcher = PathMatcher.with(exchange.getRequestURI().getPath())
                 .match("/epics");
 
-        if (!matcher.getMatchedPath().equals("/epics")) {
+        if (matcher.getMatchedPath() == null || !matcher.getMatchedPath().equals("/epics")) {
             return getBadRequest(exchange);
         }
 
@@ -85,13 +89,12 @@ public class EpicHandler extends BaseHttpHandler implements HttpHandler {
         PathMatcher matcher = PathMatcher.with(exchange.getRequestURI().getPath())
                 .match("/epics/{id}");
 
-        if (matcher.getMatchedPath().equals("/epics/{id}")) {
-
+        if (matcher.getMatchedPath() == null || !matcher.getMatchedPath().equals("/epics/{id}")) {
+            return getBadRequest(exchange);
+        } else {
             String id = matcher.getPathParameters().getFirst();
             manager.removeEpicById(Integer.parseInt(id));
             return new ResponseEntity(200);
-        } else {
-            return getBadRequest(exchange);
         }
     }
 }
