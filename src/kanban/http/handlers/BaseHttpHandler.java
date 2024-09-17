@@ -20,20 +20,12 @@ public class BaseHttpHandler implements HttpHandler {
         System.out.println("Началась обработка " + exchange.getRequestURI() + " (" + method + ") от клиента.");
 
         try {
-            ResponseEntity response;
-            switch (method) {
-                case "GET":
-                    response = handleGet(exchange);
-                    break;
-                case "POST":
-                    response = handlePost(exchange);
-                    break;
-                case "DELETE":
-                    response = handleDelete(exchange);
-                    break;
-                default:
-                    response = getBadRequest(exchange);
-            }
+            ResponseEntity response = switch (method) {
+                case "GET" -> handleGet(exchange);
+                case "POST" -> handlePost(exchange);
+                case "DELETE" -> handleDelete(exchange);
+                default -> getBadRequest(exchange);
+            };
 
             sendResponse(exchange, response);
 

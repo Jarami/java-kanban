@@ -18,7 +18,7 @@ public class HttpTaskServer {
 
     public static final int PORT = 8080;
 
-    private HttpServer httpServer = null;
+    private final HttpServer httpServer;
 
     public HttpTaskServer(TaskManager manager) throws IOException {
         httpServer = HttpServer.create(new InetSocketAddress(PORT), 0);
@@ -35,7 +35,7 @@ public class HttpTaskServer {
         server.start();
     }
 
-    public void start() throws IOException {
+    public void start() {
         httpServer.start();
     }
 

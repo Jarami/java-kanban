@@ -177,9 +177,8 @@ public abstract class TaskManagerTest<T extends TaskManager> {
         public void testThatTaskInterceptedWithSomeSubtaskIsNotSaved() {
             // name;description;status;startTime;duration
             Task task = createAndSaveTask("task1;desc1;NEW;2024-01-10 01:02:03;123");
-            assertThrows(ManagerSaveException.class, () -> {
-                createAndSaveTask("task2;desc2;NEW;2024-01-10 02:03:04;234");
-            });
+            assertThrows(ManagerSaveException.class, () ->
+                    createAndSaveTask("task2;desc2;NEW;2024-01-10 02:03:04;234"));
 
             assertIterableEquals(List.of(task), manager.getTasks());
         }
@@ -194,9 +193,8 @@ public abstract class TaskManagerTest<T extends TaskManager> {
             Subtask sub1 = createAndSaveSubtask("sub1;desc5;NEW;" + epic1.getId() + ";2024-01-08 03:04:05;345");
 
             // name;description;status;startTime;duration
-            assertThrows(ManagerSaveException.class, () -> {
-                createAndSaveTask("task2;desc2;NEW;2024-01-08 03:04:05;234");
-            });
+            assertThrows(ManagerSaveException.class, () ->
+                createAndSaveTask("task2;desc2;NEW;2024-01-08 03:04:05;234"));
 
             assertEmpty(manager.getTasks());
             assertIterableEquals(List.of(epic1), manager.getEpics());
@@ -214,9 +212,8 @@ public abstract class TaskManagerTest<T extends TaskManager> {
             // name;description;status;epicId;startTime;duration
             Subtask sub1 = createAndSaveSubtask("sub1;desc3;NEW;" + epic1.getId() + ";2024-01-08 03:04:05;345");
 
-            assertThrows(ManagerSaveException.class, () -> {
-                createAndSaveSubtask("sub2;desc4;NEW;" + epic2.getId() + ";2024-01-08 04:05:06;234");
-            });
+            assertThrows(ManagerSaveException.class, () ->
+                createAndSaveSubtask("sub2;desc4;NEW;" + epic2.getId() + ";2024-01-08 04:05:06;234"));
 
             assertIterableEquals(List.of(epic1, epic2), manager.getEpics());
             assertIterableEquals(List.of(sub1), manager.getSubtasks());
@@ -551,25 +548,19 @@ public abstract class TaskManagerTest<T extends TaskManager> {
             // начинает пересекаться с task2 - так нельзя
             Task newTask1 = Tasks.copy(task1);
             newTask1.setStartTime(parseTime("2024-01-09 03:00:00"));
-            assertThrows(ManagerSaveException.class, () -> {
-                manager.updateTask(newTask1);
-            });
+            assertThrows(ManagerSaveException.class, () -> manager.updateTask(newTask1));
             assertTaskEquals(task1, manager.getTaskById(task1.getId()).orElseThrow());
 
             // начинает пересекаться с sub2 - так нельзя
             Task newTask2 = Tasks.copy(task2);
             newTask2.setStartTime(parseTime("2024-01-07 05:00:00"));
-            assertThrows(ManagerSaveException.class, () -> {
-                manager.updateTask(newTask2);
-            });
+            assertThrows(ManagerSaveException.class, () -> manager.updateTask(newTask2));
             assertTaskEquals(task2, manager.getTaskById(task2.getId()).orElseThrow());
 
             // начинает пересекаться сама с собой - так можно
             Task newSub3 = Tasks.copy(sub3);
             newSub3.setStartTime(parseTime("2024-01-06 06:00:00"));
-            assertDoesNotThrow(() -> {
-                manager.updateTask(newSub3);
-            });
+            assertDoesNotThrow(() -> manager.updateTask(newSub3));
             assertTaskEquals(task1, manager.getTaskById(task1.getId()).orElseThrow());
         }
     }
@@ -865,9 +856,7 @@ public abstract class TaskManagerTest<T extends TaskManager> {
             // начинает пересекаться с task2 - можно, так как задача task2 удалена
             Task newTask1 = Tasks.copy(task1);
             newTask1.setStartTime(parseTime("2024-01-09 03:00:00"));
-            assertDoesNotThrow(() -> {
-                manager.updateTask(newTask1);
-            });
+            assertDoesNotThrow(() -> manager.updateTask(newTask1));
             assertTaskEquals(newTask1, manager.getTaskById(task1.getId()).orElseThrow());
         }
     }

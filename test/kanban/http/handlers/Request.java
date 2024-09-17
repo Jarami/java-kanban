@@ -36,7 +36,7 @@ class Request {
                 .GET()
                 .version(HttpClient.Version.HTTP_1_1)
                 .build();
-    };
+    }
 
     private static HttpRequest postRequest(String uri, Object object) {
         return HttpRequest.newBuilder()

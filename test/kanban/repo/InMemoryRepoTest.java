@@ -1,10 +1,9 @@
 package kanban.repo;
 
-import kanban.repo.InMemoryRepo;
+import kanban.tasks.Task;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
-import kanban.tasks.Task;
 
 import java.util.Collection;
 import java.util.List;

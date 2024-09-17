@@ -99,9 +99,8 @@ public class Main {
 
     private static void printWatchingStat() {
         System.out.println("======== WATCHING STATS ===============");
-        watchingStat.forEach((task, count) -> {
-            System.out.println("task \"" + task.getName() + "\" has been watched " + count + " times");
-        });
+        watchingStat.forEach((task, count) ->
+                System.out.println("task \"" + task.getName() + "\" has been watched " + count + " times"));
         System.out.println("=======================================");
     }
 

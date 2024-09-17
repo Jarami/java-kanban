@@ -1,18 +1,18 @@
 package kanban.managers;
 
-import kanban.managers.HistoryManager;
-import kanban.managers.Managers;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
 import kanban.tasks.Epic;
 import kanban.tasks.Subtask;
 import kanban.tasks.Task;
-import static kanban.lib.TestAssertions.*;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static kanban.lib.TestAssertions.assertEmpty;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertIterableEquals;
 
 class InMemoryHistoryManagerTest {
 

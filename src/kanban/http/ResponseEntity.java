@@ -7,7 +7,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class ResponseEntity {
-    private static Gson GSON = HttpTaskServer.getGson();
+    private static final Gson GSON = HttpTaskServer.getGson();
 
     private final int code;
     private final String message;
@@ -36,10 +36,6 @@ public class ResponseEntity {
 
     public ResponseEntity(int code, Object message) {
         this(code, message, Map.of());
-    }
-
-    public ResponseEntity(int code, Map<String, String> headers) {
-        this(code, null, headers);
     }
 
     public ResponseEntity(int code) {

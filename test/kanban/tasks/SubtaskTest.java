@@ -2,9 +2,6 @@ package kanban.tasks;
 
 import kanban.managers.Managers;
 import kanban.managers.TaskManager;
-import kanban.tasks.Epic;
-import kanban.tasks.Subtask;
-import kanban.tasks.TaskStatus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

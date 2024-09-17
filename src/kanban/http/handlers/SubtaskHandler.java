@@ -7,11 +7,9 @@ import kanban.http.ResponseEntity;
 import kanban.http.util.PathMatcher;
 import kanban.managers.TaskManager;
 import kanban.tasks.Subtask;
-import kanban.tasks.Task;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 

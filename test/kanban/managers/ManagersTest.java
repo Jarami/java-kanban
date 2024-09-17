@@ -1,6 +1,5 @@
 package kanban.managers;
 
-import kanban.managers.*;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;

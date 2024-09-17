@@ -7,8 +7,6 @@ import kanban.http.util.PathMatcher;
 import kanban.managers.TaskManager;
 import kanban.tasks.Task;
 
-import java.io.IOException;
-import java.io.OutputStream;
 import java.util.List;
 
 public class HistoryHandler extends BaseHttpHandler implements HttpHandler {
