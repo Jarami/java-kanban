@@ -13,7 +13,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class TaskHandlerTest extends AbstractHandlerTest<Task> {
 
-
     @Override
     public String getResourcePath() {
         return domain + "/tasks";

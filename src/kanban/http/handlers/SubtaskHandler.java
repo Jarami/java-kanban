@@ -14,7 +14,9 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 public class SubtaskHandler extends BaseHttpHandler implements HttpHandler {
+
     TaskManager manager;
+
     public SubtaskHandler(TaskManager manager) {
         this.manager = manager;
     }

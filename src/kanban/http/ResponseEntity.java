@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class ResponseEntity {
+
     private static final Gson GSON = HttpTaskServer.getGson();
 
     private final int code;

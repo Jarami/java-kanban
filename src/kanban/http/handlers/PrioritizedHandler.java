@@ -10,7 +10,9 @@ import kanban.tasks.Task;
 import java.util.List;
 
 public class PrioritizedHandler extends BaseHttpHandler implements HttpHandler {
+
     TaskManager manager;
+
     public PrioritizedHandler(TaskManager manager) {
         this.manager = manager;
     }

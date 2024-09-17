@@ -9,6 +9,7 @@ import java.util.Collection;
 import static org.junit.jupiter.api.Assertions.*;
 
 public class TestAssertions {
+
     public static void assertEmpty(Collection<?> col) {
         assertTrue(col.isEmpty());
     }

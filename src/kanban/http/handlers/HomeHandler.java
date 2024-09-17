@@ -10,6 +10,7 @@ import java.io.OutputStream;
 public class HomeHandler implements HttpHandler {
 
     TaskManager manager;
+
     public HomeHandler(TaskManager manager) {
         this.manager = manager;
     }

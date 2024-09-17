@@ -22,6 +22,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static kanban.lib.TestAssertions.*;
 
 class CSVFormatTest {
+
     public static final DateTimeFormatter DATE_TIME_FORMATTER = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
 
     @Test

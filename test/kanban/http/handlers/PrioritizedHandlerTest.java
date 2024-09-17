@@ -17,6 +17,7 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 public class PrioritizedHandlerTest {
+
     protected static final Gson GSON = HttpTaskServer.getGson();
     protected static final String resourcePath = "http://localhost:" + HttpTaskServer.PORT + "/prioritized";
     protected static TaskManager manager;
