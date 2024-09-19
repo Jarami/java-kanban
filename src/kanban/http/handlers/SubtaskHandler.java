@@ -1,7 +1,6 @@
 package kanban.http.handlers;
 
 import com.sun.net.httpserver.HttpExchange;
-import com.sun.net.httpserver.HttpHandler;
 import kanban.exceptions.ManagerSaveException;
 import kanban.http.ResponseEntity;
 import kanban.http.util.PathMatcher;
