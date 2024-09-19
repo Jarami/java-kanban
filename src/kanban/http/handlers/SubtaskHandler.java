@@ -13,7 +13,7 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 
-public class SubtaskHandler extends BaseHttpHandler implements HttpHandler {
+public class SubtaskHandler extends BaseHttpHandler {
 
     TaskManager manager;
 

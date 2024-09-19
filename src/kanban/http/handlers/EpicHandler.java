@@ -15,7 +15,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Optional;
 
-public class EpicHandler extends BaseHttpHandler implements HttpHandler {
+public class EpicHandler extends BaseHttpHandler {
 
     TaskManager manager;
 

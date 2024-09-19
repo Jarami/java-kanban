@@ -9,7 +9,7 @@ import kanban.tasks.Task;
 
 import java.util.List;
 
-public class HistoryHandler extends BaseHttpHandler implements HttpHandler {
+public class HistoryHandler extends BaseHttpHandler {
 
     TaskManager manager;
 
