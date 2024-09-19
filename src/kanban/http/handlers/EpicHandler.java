@@ -17,7 +17,7 @@ import java.util.Optional;
 
 public class EpicHandler extends BaseHttpHandler {
 
-    TaskManager manager;
+    private final TaskManager manager;
 
     public EpicHandler(TaskManager manager) {
         this.manager = manager;

@@ -11,7 +11,7 @@ import java.util.List;
 
 public class PrioritizedHandler extends BaseHttpHandler {
 
-    TaskManager manager;
+    private final TaskManager manager;
 
     public PrioritizedHandler(TaskManager manager) {
         this.manager = manager;

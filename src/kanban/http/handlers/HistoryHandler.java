@@ -11,7 +11,7 @@ import java.util.List;
 
 public class HistoryHandler extends BaseHttpHandler {
 
-    TaskManager manager;
+    private final TaskManager manager;
 
     public HistoryHandler(TaskManager manager) {
         this.manager = manager;
