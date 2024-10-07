@@ -1,9 +1,9 @@
-import managers.Managers;
-import managers.TaskManager;
-import tasks.Epic;
-import tasks.Subtask;
-import tasks.Task;
-import util.Tasks;
+import kanban.managers.Managers;
+import kanban.managers.TaskManager;
+import kanban.tasks.Epic;
+import kanban.tasks.Subtask;
+import kanban.tasks.Task;
+import kanban.util.Tasks;
 
 import java.util.*;
 
@@ -99,9 +99,8 @@ public class Main {
 
     private static void printWatchingStat() {
         System.out.println("======== WATCHING STATS ===============");
-        watchingStat.forEach((task, count) -> {
-            System.out.println("task \"" + task.getName() + "\" has been watched " + count + " times");
-        });
+        watchingStat.forEach((task, count) ->
+                System.out.println("task \"" + task.getName() + "\" has been watched " + count + " times"));
         System.out.println("=======================================");
     }
 
